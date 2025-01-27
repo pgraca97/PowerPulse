@@ -1,13 +1,14 @@
-// frontend/src/components/layout/Header/Header.jsx
+// src/components/layout/Header/Header.jsx
 import { AppShell, Container, Group, Button, Text, Burger } from '@mantine/core';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { useDisclosure } from '@mantine/hooks';
 import { AuthModal } from '../../forms/AuthModal';
 import PropTypes from 'prop-types';
 
 export function Header({ opened, toggle }) {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [authOpened, { open: openAuth, close: closeAuth }] = useDisclosure(false);
   const [authType, setAuthType] = useState('login');
@@ -15,6 +16,16 @@ export function Header({ opened, toggle }) {
   const handleAuthClick = (type) => {
     setAuthType(type);
     openAuth();
+  };
+
+  const handleLogout = async () => {
+    try {
+      console.log('Logging out...');
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -46,7 +57,9 @@ export function Header({ opened, toggle }) {
                 <Link to="/profile/edit">
                   <Button variant="subtle">Profile</Button>
                 </Link>
-                <Button onClick={logout}>Logout</Button>
+                <Button onClick={handleLogout} color="red">
+                  Logout
+                </Button>
               </>
             )}
           </Group>
@@ -64,5 +77,5 @@ export function Header({ opened, toggle }) {
 
 Header.propTypes = {
   opened: PropTypes.bool.isRequired,
-  toggle: PropTypes.func.isRequired
+  toggle: PropTypes.func.isRequired,
 };

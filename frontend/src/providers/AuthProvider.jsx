@@ -1,18 +1,15 @@
-// frontend/src/components/providers/AuthProvider.jsx
+// frontend/src/providers/AuthProvider.jsx
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { 
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { AuthContext } from '../contexts/AuthContext';
+import { useApolloClient } from '@apollo/client';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const apolloClient = useApolloClient();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -23,12 +20,22 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
+  const logout = async () => {
+    try {
+      console.log('Logging out...');
+      await signOut(auth);
+      // Clear Apollo cache when logging out
+      await apolloClient.clearStore();
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
-    login: (email, password) => signInWithEmailAndPassword(auth, email, password),
-    signup: (email, password) => createUserWithEmailAndPassword(auth, email, password),
-    logout: () => signOut(auth)
+    logout
   };
 
   if (loading) {

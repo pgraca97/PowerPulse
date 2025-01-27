@@ -1,5 +1,5 @@
 // src/pages/ProfileEdit.jsx
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useForm } from '@mantine/form';
 import { 
   TextInput, 
@@ -9,17 +9,21 @@ import {
   Stack,
   Select,
   FileInput,
-  Image,
+  Avatar,
   Paper,
   Title,
   Alert,
-  LoadingOverlay 
+  LoadingOverlay,
+  Center,
+  Group
 } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { IconAlertCircle, IconUpload } from '@tabler/icons-react';
 import { useProfile } from '../hooks/useProfile';
+import '@mantine/core/styles/Paper.css';
 
 export function ProfileEdit() {
-  const { profile, loading, error, updateProfile } = useProfile();
+  const { profile, loading, updateProfile } = useProfile();
+  const [imagePreview, setImagePreview] = useState(null);
   
   const form = useForm({
     initialValues: {
@@ -37,10 +41,33 @@ export function ProfileEdit() {
     }
   });
 
-  // Initialize form with profile data
+  // Cleanup function for object URL
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  // Handle file selection
+  const handleFileChange = (file) => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setImagePreview(objectUrl);
+    } else {
+      setImagePreview(null);
+    }
+
+    form.setFieldValue('profilePicture', file);
+  };
+
   useEffect(() => {
     if (profile) {
-      console.log('Setting initial form values with profile:', profile);
       form.setValues({
         name: profile.name || '',
         height: profile.profile?.height || null,
@@ -49,11 +76,9 @@ export function ProfileEdit() {
         bio: profile.profile?.bio || ''
       });
     }
-  }, [profile]); // ??????? 
+  }, [profile]);
 
   const handleSubmit = useCallback(async (values) => {
-    console.log('Form submitted with values:', values);
-    
     try {
       const formData = {
         name: values.name,
@@ -66,14 +91,14 @@ export function ProfileEdit() {
         }
       };
 
-      console.log('Calling updateProfile with data:', formData);
-      const result = await updateProfile(formData);
-      console.log('Update result:', result);
+      await updateProfile(formData);
       
-      // Only reset profile picture after successful update
-      if (result) {
-        form.setFieldValue('profilePicture', null);
+      // Clear the preview and file input after successful update
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+        setImagePreview(null);
       }
+      form.setFieldValue('profilePicture', null);
       
     } catch (error) {
       console.error('Profile update error:', error);
@@ -81,19 +106,11 @@ export function ProfileEdit() {
         general: error.message || 'Failed to update profile' 
       });
     }
-  }, [updateProfile, form]);
-
-  if (error) {
-    console.error('Profile loading error:', error);
-    return (
-      <Alert icon={<IconAlertCircle size={16} />} color="red" title="Error">
-        Failed to load profile data. Please try again later.
-      </Alert>
-    );
-  }
+  }, [updateProfile, form, imagePreview]);
 
   return (
-    <Paper p="md" pos="relative">
+    <Center>
+    <Paper p="md" pos="relative" shadow="xs" style={{ width: 500 }}>
       <LoadingOverlay visible={loading} />
       
       <Title order={2} mb="md">Edit Profile</Title>
@@ -106,24 +123,31 @@ export function ProfileEdit() {
             </Alert>
           )}
 
-          {profile?.picture?.url && (
-            <Image
-              src={profile.picture.url}
-              alt="Profile"
-              width={120}
-              height={120}
-              radius="xl"
-              mx="auto"
-            />
-          )}
+          <Center>
+            <Stack align="center" gap="sm">
+              <Avatar
+                src={imagePreview || profile?.picture?.url}
+                alt={profile?.name || 'Profile picture'}
+                size={120}
+                radius="xl"
+                color="blue"
+              >
+                {profile?.name ? profile.name.substring(0,2).toUpperCase()  : null}
+              </Avatar>
+              
+              <FileInput
+                accept="image/*"
+                placeholder="Change picture"
+                size="sm"
+                leftSection={<IconUpload size={14} />}
+                value={form.values.profilePicture}
+                onChange={handleFileChange}
+                clearable
+              />
+            </Stack>
+          </Center>
 
-          <FileInput
-            label="Profile Picture"
-            accept="image/*"
-            placeholder="Upload new picture"
-            {...form.getInputProps('profilePicture')}
-          />
-
+          {/* Rest of the form remains the same */}
           <TextInput
             required
             label="Name"
@@ -131,20 +155,22 @@ export function ProfileEdit() {
             {...form.getInputProps('name')}
           />
 
-          <NumberInput
-            label="Height (cm)"
-            placeholder="Your height"
-            min={0}
-            {...form.getInputProps('height')}
-          />
+          <Group grow>
+            <NumberInput
+              label="Height (cm)"
+              placeholder="Your height"
+              min={0}
+              {...form.getInputProps('height')}
+            />
 
-          <NumberInput
-            label="Weight (kg)"
-            placeholder="Your weight"
-            min={0}
-            precision={1}
-            {...form.getInputProps('weight')}
-          />
+            <NumberInput
+              label="Weight (kg)"
+              placeholder="Your weight"
+              min={0}
+              precision={1}
+              {...form.getInputProps('weight')}
+            />
+          </Group>
 
           <Select
             label="Fitness Level"
@@ -160,6 +186,8 @@ export function ProfileEdit() {
           <Textarea
             label="Bio"
             placeholder="Tell us about yourself"
+            autosize
+            minRows={3}
             {...form.getInputProps('bio')}
           />
 
@@ -169,5 +197,6 @@ export function ProfileEdit() {
         </Stack>
       </form>
     </Paper>
+    </Center>
   );
 }

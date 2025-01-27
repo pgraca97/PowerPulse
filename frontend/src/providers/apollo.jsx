@@ -26,7 +26,16 @@ export function ApolloProviderWrapper({ children }) {
 
   const client = new ApolloClient({
     link: authLink.concat(httpLink),
-    cache: new InMemoryCache()
+    cache: new InMemoryCache(),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: 'network-only', // Don't use cache for queries
+        nextFetchPolicy: 'cache-first' // But cache subsequent requests
+      },
+      query: {
+        fetchPolicy: 'network-only' // Don't use cache for one-time queries
+      }
+    }
   });
 
   return <ApolloProvider client={client}>{children}</ApolloProvider>;
