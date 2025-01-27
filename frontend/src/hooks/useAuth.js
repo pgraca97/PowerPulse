@@ -1,6 +1,6 @@
 // src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
 export function useAuth() {
@@ -16,9 +16,20 @@ export function useAuth() {
     return () => unsubscribe();
   }, []);
 
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      // User state will be automatically updated by onAuthStateChanged
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
+  };
+
   return {
     user,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    logout
   };
 }
