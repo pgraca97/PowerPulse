@@ -40,9 +40,9 @@ export const userTypes = `
   }
 
   type Media {
-    url: String!
-    publicId: String!
-    resourceType: MediaType!
+    url: String
+    publicId: String
+    resourceType: MediaType
   }
 
   enum MediaType {

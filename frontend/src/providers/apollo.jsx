@@ -1,4 +1,4 @@
-// frontend/src/providers/apollo.jsx
+// src/providers/apollo.jsx
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { auth } from '../config/firebase';
@@ -19,7 +19,7 @@ export function ApolloProviderWrapper({ children }) {
         }
       };
     } catch (error) {
-      console.error('Error getting token:', error);
+      console.error('Error getting auth token:', error);
       return { headers };
     }
   });

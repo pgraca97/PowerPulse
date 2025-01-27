@@ -54,6 +54,8 @@ const { url } = await startStandaloneServer(server, {
     try {
       // Verify the Firebase token
       const decodedToken = await getAuth().verifyIdToken(token);
+         // decodedToken.uid is the Firebase User ID - this never changes
+      // The token itself changes regularly, but we don't need to track it
       return { user: decodedToken };
     } catch (error) {
       console.error('Token verification error:', error);

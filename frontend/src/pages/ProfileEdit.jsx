@@ -1,5 +1,5 @@
 // src/pages/ProfileEdit.jsx
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useForm } from '@mantine/form';
 import { 
   TextInput, 
@@ -12,77 +12,100 @@ import {
   Image,
   Paper,
   Title,
+  Alert,
   LoadingOverlay 
 } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useProfile } from '../hooks/useProfile';
 
 export function ProfileEdit() {
-  const { profile, loading, updateProfile } = useProfile();
+  const { profile, loading, error, updateProfile } = useProfile();
   
   const form = useForm({
     initialValues: {
-      username: '',
       name: '',
       height: null,
       weight: null,
-      fitnessLevel: '',
+      fitnessLevel: null,
       bio: '',
       profilePicture: null
+    },
+    validate: {
+      name: (value) => (value ? null : 'Name is required'),
+      height: (value) => (!value || value > 0 ? null : 'Height must be greater than 0'),
+      weight: (value) => (!value || value > 0 ? null : 'Weight must be greater than 0')
     }
   });
 
-  // Update form when profile data is loaded
+  // Initialize form with profile data
   useEffect(() => {
     if (profile) {
+      console.log('Setting initial form values with profile:', profile);
       form.setValues({
-        username: profile.username || '',
         name: profile.name || '',
         height: profile.profile?.height || null,
         weight: profile.profile?.weight || null,
-        fitnessLevel: profile.profile?.fitnessLevel || '',
+        fitnessLevel: profile.profile?.fitnessLevel || null,
         bio: profile.profile?.bio || ''
       });
     }
-  }, [profile]);
+  }, [profile]); // ??????? 
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = useCallback(async (values) => {
+    console.log('Form submitted with values:', values);
+    
     try {
-      await updateProfile({
-        username: values.username,
+      const formData = {
         name: values.name,
-        profilePicture: values.profilePicture,
+        profilePicture: values.profilePicture || null,
         profile: {
-          height: values.height,
-          weight: values.weight,
-          fitnessLevel: values.fitnessLevel,
-          bio: values.bio
+          height: values.height || null,
+          weight: values.weight || null,
+          fitnessLevel: values.fitnessLevel || null,
+          bio: values.bio || ''
         }
-      });
+      };
 
-      notifications.show({
-        title: 'Success',
-        message: 'Profile updated successfully',
-        color: 'green'
-      });
+      console.log('Calling updateProfile with data:', formData);
+      const result = await updateProfile(formData);
+      console.log('Update result:', result);
+      
+      // Only reset profile picture after successful update
+      if (result) {
+        form.setFieldValue('profilePicture', null);
+      }
+      
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: error.message,
-        color: 'red'
+      console.error('Profile update error:', error);
+      form.setErrors({ 
+        general: error.message || 'Failed to update profile' 
       });
     }
-  };
+  }, [updateProfile, form]);
+
+  if (error) {
+    console.error('Profile loading error:', error);
+    return (
+      <Alert icon={<IconAlertCircle size={16} />} color="red" title="Error">
+        Failed to load profile data. Please try again later.
+      </Alert>
+    );
+  }
 
   return (
     <Paper p="md" pos="relative">
-      <LoadingOverlay visible={loading} overlayBlur={2} />
+      <LoadingOverlay visible={loading} />
       
       <Title order={2} mb="md">Edit Profile</Title>
 
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
-          {/* Current profile picture display */}
+          {form.errors.general && (
+            <Alert icon={<IconAlertCircle size={16} />} color="red">
+              {form.errors.general}
+            </Alert>
+          )}
+
           {profile?.picture?.url && (
             <Image
               src={profile.picture.url}
@@ -97,16 +120,12 @@ export function ProfileEdit() {
           <FileInput
             label="Profile Picture"
             accept="image/*"
+            placeholder="Upload new picture"
             {...form.getInputProps('profilePicture')}
           />
 
           <TextInput
-            label="Username"
-            placeholder="Your username"
-            {...form.getInputProps('username')}
-          />
-
-          <TextInput
+            required
             label="Name"
             placeholder="Your name"
             {...form.getInputProps('name')}

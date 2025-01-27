@@ -1,6 +1,5 @@
-// frontend/src/hooks/useProfile.js
+// src/hooks/useProfile.js
 import { useQuery, useMutation, gql } from '@apollo/client';
-import { auth } from '../config/firebase';
 
 const GET_PROFILE = gql`
   query GetProfile {
@@ -17,10 +16,19 @@ const GET_PROFILE = gql`
       profile {
         height
         weight
-        goals
         fitnessLevel
         bio
       }
+    }
+  }
+`;
+
+const GET_SIGNED_UPLOAD_URL = gql`
+  mutation GetSignedUploadUrl {
+    getSignedUploadUrl {
+      signature
+      timestamp
+      apiKey
     }
   }
 `;
@@ -38,7 +46,6 @@ const UPDATE_PROFILE = gql`
       profile {
         height
         weight
-        goals
         fitnessLevel
         bio
       }
@@ -47,39 +54,70 @@ const UPDATE_PROFILE = gql`
 `;
 
 export function useProfile() {
-  const { data, loading, error, refetch } = useQuery(GET_PROFILE);
-  const [updateProfile, { loading: updateLoading }] = useMutation(UPDATE_PROFILE);
+  const { data, loading: queryLoading, error: queryError, refetch } = useQuery(GET_PROFILE);
+  const [getSignedUrl] = useMutation(GET_SIGNED_UPLOAD_URL);
+  const [updateProfileMutation, { loading: updateLoading }] = useMutation(UPDATE_PROFILE);
 
-  const updateProfileData = async (profileData) => {
+  const uploadToCloudinary = async (file) => {
+    // Get signed URL
+    const { data: signedUrlData } = await getSignedUrl();
+    const { signature, timestamp, apiKey } = signedUrlData.getSignedUploadUrl;
+
+    // Create form data
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', apiKey);
+    formData.append('timestamp', timestamp);
+    formData.append('signature', signature);
+    formData.append('folder', 'powerpulse/profile-pictures');
+    formData.append('transformation', 'c_limit,w_500,h_500,f_auto');
+
+    // Upload to Cloudinary
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/upload`,
+      {
+        method: 'POST',
+        body: formData
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to upload image');
+    }
+
+    const result = await response.json();
+    return result.secure_url;
+  };
+
+  const updateProfile = async ({ profilePicture, ...profileData }) => {
     try {
-      // First, update Firebase display name if name is provided
-      if (profileData.name && auth.currentUser) {
-        await auth.currentUser.updateProfile({
-          displayName: profileData.name
-        });
+      let pictureUrl;
+      
+      if (profilePicture) {
+        pictureUrl = await uploadToCloudinary(profilePicture);
       }
 
-      // Then update our backend
-      const { data: updateData } = await updateProfile({
+      const { data: updateData } = await updateProfileMutation({
         variables: {
-          input: profileData
+          input: {
+            ...profileData,
+            ...(pictureUrl && { pictureUrl })
+          }
         }
       });
 
-      // Refetch to get updated data
       await refetch();
-
-      return updateData;
+      return updateData.updateProfile;
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Error in updateProfile:', error);
       throw error;
     }
   };
 
   return {
     profile: data?.me,
-    loading: loading || updateLoading,
-    error,
-    updateProfile: updateProfileData
+    loading: queryLoading || updateLoading,
+    error: queryError,
+    updateProfile
   };
 }

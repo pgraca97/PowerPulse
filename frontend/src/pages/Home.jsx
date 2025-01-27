@@ -1,15 +1,14 @@
-// frontend/src/pages/Home.jsx
-import React from 'react';
+// src/pages/Home.jsx
+import { useEffect } from 'react';
 import { Container, Title, Text, Group, Button } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { useAuthSync } from '../hooks/useAuthSync';
+import { useAuth } from '../hooks/useAuth';
 
 export function Home() {
-  const { isAuthenticated } = useAuthSync();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to dashboard if already authenticated
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');
     }

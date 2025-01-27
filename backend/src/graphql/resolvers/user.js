@@ -1,15 +1,15 @@
 // backend/src/graphql/resolvers/user.js
+import { v2 as cloudinary } from 'cloudinary';
 import { User } from '../../models/User.js';
-import { uploadToCloudinary, deleteFromCloudinary } from '../../services/cloudinaryService.js';
 
 export const userResolvers = {
   Query: {
     me: async (_, __, { user }) => {
       if (!user) throw new Error('Not authenticated');
-      // Using uid from Firebase decoded token
       return await User.findOne({ firebaseUid: user.uid });
     }
   },
+  
   
   Mutation: {
     createOrUpdateUser: async (_, { input }) => {
@@ -57,13 +57,44 @@ export const userResolvers = {
       }
     },
     
+    getSignedUploadUrl: async (_, __, { user }) => {
+      if (!user) throw new Error('Not authenticated');
+      
+      const timestamp = Math.round(new Date().getTime() / 1000);
+      const signature = cloudinary.utils.api_sign_request(
+        {
+          timestamp,
+          folder: 'powerpulse/profile-pictures',
+          transformation: 'c_limit,w_500,h_500,f_auto'
+        },
+        process.env.CLOUDINARY_API_SECRET
+      );
+      
+      return {
+        signature,
+        timestamp,
+        apiKey: process.env.CLOUDINARY_API_KEY
+      };
+    },
+    
     updateProfile: async (_, { input }, { user }) => {
       if (!user) throw new Error('Not authenticated');
       
       try {
+        const updateData = {};
+        if (input.name) updateData.name = input.name;
+        if (input.profile) updateData.profile = input.profile;
+        if (input.pictureUrl) {
+          updateData.picture = {
+            url: input.pictureUrl,
+            publicId: `powerpulse/profile-pictures/${user.uid}`,
+            resourceType: 'IMAGE'
+          };
+        }
+        
         const updatedUser = await User.findOneAndUpdate(
           { firebaseUid: user.uid },
-          { $set: input },
+          { $set: updateData },
           { new: true }
         );
         
@@ -78,43 +109,17 @@ export const userResolvers = {
       }
     },
     
-    uploadProfilePicture: async (_, { file }, { user }) => {
-      if (!user) throw new Error('Not authenticated');
-      
-      try {
-        const dbUser = await User.findOne({ firebaseUid: user.uid });
-        if (!dbUser) throw new Error('User not found');
-        
-        // Delete old profile picture if exists
-        if (dbUser.picture?.publicId) {
-          await deleteFromCloudinary(dbUser.picture.publicId);
-        }
-        
-        // Upload new image to Cloudinary
-        const media = await uploadToCloudinary(file, 'profile-pictures');
-        
-        // Update user in database
-        await User.findOneAndUpdate(
-          { firebaseUid: user.uid },
-          { $set: { picture: media } }
-        );
-        
-        return media;
-      } catch (error) {
-        console.error('Error uploading profile picture:', error);
-        throw new Error('Failed to upload profile picture');
-      }
-    },
+    
     deleteUser: async (_, __, { user }) => {
       if (!user) throw new Error('Not authenticated');
       try {
         const dbUser = await User.findOne({ firebaseUid: user.uid });
         if (!dbUser) throw new Error('User not found');
         
-        // Delete profile picture if exists
+/*         // Delete profile picture if exists
         if (dbUser.picture?.publicId) {
           await deleteFromCloudinary(dbUser.picture.publicId);
-        }
+        } */
         
         await User.findByIdAndDelete(dbUser._id);
         return true;

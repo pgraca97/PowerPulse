@@ -3,8 +3,14 @@ export const userMutations = `
   type Mutation {
     createOrUpdateUser(input: CreateOrUpdateUserInput!): User!
     updateProfile(input: UpdateProfileInput!): User!
-    uploadProfilePicture(file: Upload!): Media!
+    getSignedUploadUrl: SignedUploadResponse!
     deleteUser: Boolean!
+  }
+
+  type SignedUploadResponse {
+    signature: String!
+    timestamp: Int!
+    apiKey: String!
   }
 
   input CreateOrUpdateUserInput {
@@ -15,10 +21,8 @@ export const userMutations = `
   }
 
   input UpdateProfileInput {
-    username: String
     name: String
     profile: ProfileInput
+    pictureUrl: String
   }
-
-  scalar Upload
 `;

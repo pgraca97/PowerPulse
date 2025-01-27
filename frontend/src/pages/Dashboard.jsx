@@ -1,19 +1,18 @@
-
-// src/pages/Dashboard/Dashboard.jsx
+// src/pages/Dashboard.jsx
 import { Title, Text, Loader } from '@mantine/core';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '../hooks/useAuth';
 
 export function Dashboard() {
-  const { user, isLoading } = useAuth0();
+  const { user, loading } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return <Loader size="xl" className="mx-auto" />;
   }
 
   return (
     <div>
       <Title order={2} className="mb-4">
-        Welcome, {user?.name}!
+        Welcome, {user?.displayName || user?.email}!
       </Title>
       <Text>Your fitness journey starts here.</Text>
     </div>

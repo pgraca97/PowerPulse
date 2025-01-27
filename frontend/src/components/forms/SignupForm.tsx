@@ -1,13 +1,15 @@
-// frontend/src/components/forms/SignupForm.jsx
-import React, { useState } from 'react';
-import { TextInput, PasswordInput, Button, Stack } from '@mantine/core';
+// src/components/forms/SignupForm.jsx
+import React from 'react';
+import { TextInput, PasswordInput, Button, Stack, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../../config/firebase';
-import { notifications } from '@mantine/notifications';
+import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { useSignup } from '../../hooks/useSignup';
+import { IconAlertCircle } from '@tabler/icons-react';
 
-export function SignupForm() {
-  const [loading, setLoading] = useState(false);
+export function SignupForm({ onSuccess }) {
+  const navigate = useNavigate();
+  const { signup, loading } = useSignup();
   
   const form = useForm({
     initialValues: {
@@ -18,7 +20,7 @@ export function SignupForm() {
     },
     validate: {
       name: (value) => (value.length >= 2 ? null : 'Name must be at least 2 characters'),
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email format'),
       password: (value) => (value.length >= 6 ? null : 'Password must be at least 6 characters'),
       confirmPassword: (value, values) => 
         value === values.password ? null : 'Passwords do not match'
@@ -26,39 +28,42 @@ export function SignupForm() {
   });
 
   const handleSubmit = async (values) => {
-    setLoading(true);
-    try {
-      // Create user in Firebase
-      const { user } = await createUserWithEmailAndPassword(
-        auth, 
-        values.email, 
-        values.password
-      );
+    // Clear any previous errors
+    form.clearErrors();
+    
+    const result = await signup({
+      email: values.email,
+      password: values.password,
+      name: values.name
+    });
 
-      // Update profile with name
-      await updateProfile(user, {
-        displayName: values.name
-      });
-
-      notifications.show({
-        title: 'Success',
-        message: 'Account created successfully',
-        color: 'green'
-      });
-    } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: error.message,
-        color: 'red'
-      });
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      if (onSuccess) {
+        onSuccess();
+      }
+      navigate('/dashboard');
+    } else {
+      // Set field-specific errors
+      if (result.error === 'email') {
+        form.setFieldError('email', result.message);
+      } else if (result.error === 'password') {
+        form.setFieldError('password', result.message);
+      } else {
+        // Set general form error
+        form.setErrors({ general: result.message });
+      }
     }
   };
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
+        {form.errors.general && (
+          <Alert icon={<IconAlertCircle size={16} />} color="red" title="Error">
+            {form.errors.general}
+          </Alert>
+        )}
+
         <TextInput
           required
           label="Name"
@@ -94,3 +99,7 @@ export function SignupForm() {
     </form>
   );
 }
+
+SignupForm.propTypes = {
+  onSuccess: PropTypes.func
+};

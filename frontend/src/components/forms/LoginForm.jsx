@@ -1,13 +1,14 @@
-// frontend/src/components/forms/LoginForm.jsx
-import { useState } from 'react';
-import { TextInput, PasswordInput, Button, Stack } from '@mantine/core';
+// src/components/forms/LoginForm.jsx
+import { TextInput, PasswordInput, Button, Stack, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../config/firebase';
-import { notifications } from '@mantine/notifications';
+import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { IconAlertCircle } from '@tabler/icons-react';
+import { useLogin } from '../../hooks/useLogin';
 
-export function LoginForm() {
-  const [loading, setLoading] = useState(false);
+export function LoginForm({ onSuccess }) {
+  const navigate = useNavigate();
+  const { login, loading } = useLogin();
   
   const form = useForm({
     initialValues: {
@@ -15,34 +16,45 @@ export function LoginForm() {
       password: ''
     },
     validate: {
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email format'),
       password: (value) => (value.length >= 6 ? null : 'Password must be at least 6 characters')
     }
   });
 
   const handleSubmit = async (values) => {
-    setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      notifications.show({
-        title: 'Success',
-        message: 'Logged in successfully',
-        color: 'green'
-      });
-    } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: error.message,
-        color: 'red'
-      });
-    } finally {
-      setLoading(false);
+    form.clearErrors();
+    
+    const result = await login({
+      email: values.email,
+      password: values.password
+    });
+
+    if (result.success) {
+      if (onSuccess) {
+        onSuccess();
+      }
+      navigate('/dashboard');
+    } else {
+      // Set field-specific or general errors based on the error type
+      if (result.error === 'email') {
+        form.setFieldError('email', result.message);
+      } else if (result.error === 'password') {
+        form.setFieldError('password', result.message);
+      } else {
+        form.setErrors({ general: result.message });
+      }
     }
   };
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
+        {form.errors.general && (
+          <Alert icon={<IconAlertCircle size={16} />} color="red" title="Error">
+            {form.errors.general}
+          </Alert>
+        )}
+
         <TextInput
           required
           label="Email"
@@ -64,3 +76,7 @@ export function LoginForm() {
     </form>
   );
 }
+
+LoginForm.propTypes = {
+  onSuccess: PropTypes.func
+};

@@ -15,7 +15,7 @@
     "@mantine/form": "^7.16.2",
     "@mantine/hooks": "^7.16.2",
     "@mantine/notifications": "^7.16.2",
-    "apollo-upload-client": "^18.0.1",
+    "@tabler/icons-react": "^3.29.0",
     "firebase": "^11.2.0",
     "graphql": "^16.10.0",
     "prop-types": "^15.8.1",

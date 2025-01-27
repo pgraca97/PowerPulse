@@ -1,13 +1,21 @@
 // src/components/ProtectedRoute.jsx
 import PropTypes from 'prop-types';
-import { withAuthenticationRequired } from '@auth0/auth0-react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { Loader } from '@mantine/core';
 
-export function ProtectedRoute({ component: Component, ...args }) {
-  const WithAuth = withAuthenticationRequired(Component, {
-    onRedirecting: () => <div>Loading...</div>,
-  });
+export function ProtectedRoute({ component: Component }) {
+  const { isAuthenticated, loading } = useAuth();
   
-  return <WithAuth {...args} />;
+  if (loading) {
+    return <Loader size="xl" className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />;
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <Component />;
 }
 
 ProtectedRoute.propTypes = {
