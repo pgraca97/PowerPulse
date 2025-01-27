@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-  auth0Id: {
+  firebaseUid: {
     type: String,
     required: true,
     unique: true
@@ -13,7 +13,15 @@ const userSchema = new mongoose.Schema({
     unique: true
   },
   name: String,
-  picture: String,
+  picture: {
+    url: String,
+    publicId: String,
+    resourceType: {
+      type: String,
+      enum: ['IMAGE', 'VIDEO'],
+      default: 'IMAGE'
+    }
+  },
   profile: {
     height: Number,
     weight: Number,

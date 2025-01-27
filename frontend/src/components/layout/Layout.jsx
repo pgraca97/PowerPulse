@@ -18,6 +18,7 @@ export function Layout() {
         collapsed: { mobile: !opened }
       }}
       padding="md"
+       layout="alt"
     >
       <Header opened={opened} toggle={toggle} />
       <AppShell.Main>

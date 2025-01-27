@@ -4,6 +4,7 @@ import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProfileEdit } from './pages/ProfileEdit';
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <ProtectedRoute component={Dashboard} />,
+      },
+      {
+        path: 'profile/edit',
+        element: <ProtectedRoute component={ProfileEdit} />,
       },
       {
         path: '*',

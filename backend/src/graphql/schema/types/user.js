@@ -1,11 +1,11 @@
-// src/graphql/schema/types/user.js
+// backend/src/graphql/schema/types/user.js
 export const userTypes = `
   type User {
     id: ID!
-    auth0Id: String!
+    firebaseUid: String!
     email: String!
     name: String
-    picture: String
+    picture: Media
     profile: Profile
     createdAt: String!
     updatedAt: String!
@@ -16,12 +16,7 @@ export const userTypes = `
     weight: Float
     goals: [String]
     fitnessLevel: FitnessLevel
-  }
-
-  enum FitnessLevel {
-    BEGINNER
-    INTERMEDIATE
-    ADVANCED
+    bio: String
   }
 
   input ProfileInput {
@@ -29,11 +24,35 @@ export const userTypes = `
     weight: Float
     goals: [String]
     fitnessLevel: FitnessLevel
+    bio: String
   }
 
-  input UpdateUserInput {
+  input CreateOrUpdateUserInput {
+    firebaseUid: String!
+    email: String!
     name: String
     picture: String
+  }
+
+  input UpdateProfileInput {
+    name: String
     profile: ProfileInput
+  }
+
+  type Media {
+    url: String!
+    publicId: String!
+    resourceType: MediaType!
+  }
+
+  enum MediaType {
+    IMAGE
+    VIDEO
+  }
+
+  enum FitnessLevel {
+    BEGINNER
+    INTERMEDIATE
+    ADVANCED
   }
 `;

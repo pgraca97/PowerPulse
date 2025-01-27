@@ -1,7 +1,7 @@
-// src/App.jsx
+// frontend/src/App.jsx
 import { MantineProvider } from '@mantine/core';
 import { BrowserRouter } from 'react-router-dom';
-import { Auth0ProviderWithNavigate } from './providers/auth';
+import { AuthProvider } from './providers/AuthProvider';
 import { ApolloProviderWrapper } from './providers/apollo';
 import { AppRoutes } from './AppRoutes';
 import '@mantine/core/styles.css';
@@ -10,11 +10,11 @@ function App() {
   return (
     <MantineProvider>
       <BrowserRouter>
-        <Auth0ProviderWithNavigate>
+        <AuthProvider>
           <ApolloProviderWrapper>
             <AppRoutes />
           </ApolloProviderWrapper>
-        </Auth0ProviderWithNavigate>
+        </AuthProvider>
       </BrowserRouter>
     </MantineProvider>
   );

@@ -1,57 +1,63 @@
-// src/hooks/useAuthSync.js
-import { useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+// frontend/src/hooks/useAuthSync.js
+import { useState, useEffect } from 'react';
 import { gql, useMutation } from '@apollo/client';
+import { useAuth } from './useAuth';
 
-const CREATE_OR_UPDATE_USER = gql`
+const SYNC_USER = gql`
   mutation CreateOrUpdateUser($input: CreateOrUpdateUserInput!) {
     createOrUpdateUser(input: $input) {
       id
-      auth0Id
+      firebaseUid
       email
       name
-      picture
-      profile {
-        height
-        weight
-        goals
-        fitnessLevel
-      }
     }
   }
 `;
 
 export function useAuthSync() {
-  const { user, isAuthenticated, isLoading: auth0Loading } = useAuth0();
-  const [createOrUpdateUser, { loading: syncLoading, error }] = useMutation(CREATE_OR_UPDATE_USER);
+  const { user: firebaseUser, loading: authLoading } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const [syncUser] = useMutation(SYNC_USER);
 
   useEffect(() => {
-    const syncUser = async () => {
-      if (isAuthenticated && user && !auth0Loading) {
-        try {
-          const response = await createOrUpdateUser({
+    const syncUserData = async () => {
+      if (authLoading) return;
+
+      try {
+        if (firebaseUser) {
+          // Sync with our backend
+          await syncUser({
             variables: {
               input: {
-                auth0Id: user.sub,
-                email: user.email,
-                name: user.name,
-                picture: user.picture
+                firebaseUid: firebaseUser.uid,
+                email: firebaseUser.email,
+                name: firebaseUser.displayName || '',
+                picture: firebaseUser.photoURL || ''
               }
             }
           });
           
-          console.log('User synced with backend:', response.data.createOrUpdateUser);
-        } catch (err) {
-          console.error('Error syncing user:', err);
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
         }
+      } catch (err) {
+        console.error('Auth sync error:', err);
+        setError(err);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
       }
     };
 
-    syncUser();
-  }, [isAuthenticated, user, auth0Loading, createOrUpdateUser]);
+    syncUserData();
+  }, [firebaseUser, authLoading, syncUser]);
 
   return {
-    isLoading: auth0Loading || syncLoading,
+    loading: loading || authLoading,
     error,
     isAuthenticated
   };

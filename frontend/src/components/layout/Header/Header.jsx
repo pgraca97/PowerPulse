@@ -1,12 +1,21 @@
-// src/components/layout/Header/Header.jsx
+// frontend/src/components/layout/Header/Header.jsx
 import { AppShell, Container, Group, Button, Text, Burger } from '@mantine/core';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth0 } from '@auth0/auth0-react';
-// import { useDisclosure } from '@mantine/hooks';
+import { useAuth } from '../../../hooks/useAuth';
+import { useDisclosure } from '@mantine/hooks';
+import { AuthModal } from '../../forms/AuthModal';
 import PropTypes from 'prop-types';
 
 export function Header({ opened, toggle }) {
-  const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
+  const { user, logout } = useAuth();
+  const [authOpened, { open: openAuth, close: closeAuth }] = useDisclosure(false);
+  const [authType, setAuthType] = useState('login');
+
+  const handleAuthClick = (type) => {
+    setAuthType(type);
+    openAuth();
+  };
 
   return (
     <AppShell.Header>
@@ -20,24 +29,35 @@ export function Header({ opened, toggle }) {
           </Group>
 
           <Group>
-            {!isAuthenticated ? (
+            {!user ? (
               <>
-                <Button variant="subtle" onClick={() => loginWithRedirect()}>Log in</Button>
-                <Button onClick={() => loginWithRedirect({ 
-                  authorizationParams: { screen_hint: 'signup' }
-                })}>Sign up</Button>
+                <Button variant="subtle" onClick={() => handleAuthClick('login')}>
+                  Log in
+                </Button>
+                <Button onClick={() => handleAuthClick('signup')}>
+                  Sign up
+                </Button>
               </>
             ) : (
               <>
                 <Link to="/dashboard">
                   <Button variant="subtle">Dashboard</Button>
                 </Link>
-                <Button onClick={() => logout()}>Logout</Button>
+                <Link to="/profile/edit">
+                  <Button variant="subtle">Profile</Button>
+                </Link>
+                <Button onClick={logout}>Logout</Button>
               </>
             )}
           </Group>
         </Group>
       </Container>
+
+      <AuthModal 
+        opened={authOpened} 
+        onClose={closeAuth} 
+        defaultTab={authType} 
+      />
     </AppShell.Header>
   );
 }

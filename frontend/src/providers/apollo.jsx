@@ -1,19 +1,17 @@
-// src/providers/apollo.jsx
+// frontend/src/providers/apollo.jsx
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
-import { useAuth0 } from '@auth0/auth0-react';
+import { auth } from '../config/firebase';
 import PropTypes from 'prop-types';
 
 export function ApolloProviderWrapper({ children }) {
-  const { getAccessTokenSilently } = useAuth0();
-
   const httpLink = createHttpLink({
     uri: 'http://localhost:4001/graphql',
   });
 
   const authLink = setContext(async (_, { headers }) => {
     try {
-      const token = await getAccessTokenSilently();
+      const token = await auth.currentUser?.getIdToken();
       return {
         headers: {
           ...headers,
@@ -21,7 +19,7 @@ export function ApolloProviderWrapper({ children }) {
         }
       };
     } catch (error) {
-        console.error('Error setting token:', error);
+      console.error('Error getting token:', error);
       return { headers };
     }
   });
