@@ -7,6 +7,7 @@ export const userTypes = `
     name: String
     picture: Media
     profile: Profile
+    progress: [UserProgress!]!
     createdAt: String!
     updatedAt: String!
   }
@@ -55,4 +56,17 @@ export const userTypes = `
     INTERMEDIATE
     ADVANCED
   }
+
+  type UserProgress {
+  exerciseType: ExerciseType!
+  level: Int!
+  points: Int!
+  }
+
+  type ExerciseType {
+  id: ID!
+  title: String!
+  }
+
+
 `;

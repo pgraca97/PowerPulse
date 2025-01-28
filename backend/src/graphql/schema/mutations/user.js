@@ -5,6 +5,7 @@ export const userMutations = `
     updateProfile(input: UpdateProfileInput!): User!
     getSignedUploadUrl: SignedUploadResponse!
     deleteUser: Boolean!
+    completeExercise(userId: ID!, exerciseId: ID!): UserProgress
   }
 
   type SignedUploadResponse {
@@ -24,5 +25,11 @@ export const userMutations = `
     name: String
     profile: ProfileInput
     pictureUrl: String
+  }
+
+  type UserProgress {
+    exerciseType: ExerciseType!
+    level: Int!
+    points: Int!
   }
 `;
