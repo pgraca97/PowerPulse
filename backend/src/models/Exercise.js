@@ -12,6 +12,9 @@ const exerciseSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    equipment: {
+      type: String,
+    },
     type: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ExerciseType",

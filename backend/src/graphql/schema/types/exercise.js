@@ -4,6 +4,7 @@ export const exerciseTypes = `
     id: ID!
     title: String!
     description: String!
+    equipment: String!
     type: ExerciseType!
     difficulty: Difficulty!
     muscles: [Muscle!]!
@@ -37,6 +38,7 @@ export const exerciseTypes = `
     difficulty: Difficulty!
     muscles: [Muscle!]!
     instructions: [String!]!
+    equipment: String
     pointsAwarded: Int!
   }
 
@@ -47,6 +49,7 @@ export const exerciseTypes = `
     difficulty: Difficulty
     muscles: [Muscle!]
     instructions: [String!]
+    equipment: String
     pointsAwarded: Int
   }
 
