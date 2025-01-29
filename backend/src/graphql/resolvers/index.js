@@ -14,4 +14,5 @@ export const resolvers = {
     ...exerciseResolvers.Mutation,
     ...exerciseTypeResolvers.Mutation,
   },
+  UserProgress: userResolvers.UserProgress,
 };

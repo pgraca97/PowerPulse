@@ -1,5 +1,6 @@
 // backend\src\models\User.js
 import mongoose from "mongoose";
+import { MUSCLE_GROUPS, DIFFICULTY_LEVELS } from "../constants/exercise.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -33,7 +34,7 @@ const userSchema = new mongoose.Schema(
       goals: [String],
       fitnessLevel: {
         type: String,
-        enum: ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+        enum: DIFFICULTY_LEVELS,
       },
     },
     progress: [{

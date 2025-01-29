@@ -15,12 +15,17 @@ import {
 
 export const userResolvers = {
   Query: {
-    // Returns authenticated user's profile
     me: async (_, __, { user }) => {
       requireAuth({ user });
       try {
         const dbUser = await User.findOne({ firebaseUid: user.uid });
         if (!dbUser) throw new NotFoundError('User', user.uid);
+        
+        // Ensure progress array exists and has valid data
+        if (!dbUser.progress) {
+          dbUser.progress = [];
+        }
+        
         return dbUser;
       } catch (error) {
         return handleMongoError(error);
@@ -36,6 +41,21 @@ export const userResolvers = {
         return handleMongoError(error);
       }
     },
+  },
+
+  UserProgress: {
+    exerciseType: async (progress) => {
+      try {
+        const exerciseType = await ExerciseType.findById(progress.exerciseTypeId);
+        if (!exerciseType) {
+          throw new Error(`ExerciseType not found for id: ${progress.exerciseTypeId}`);
+        }
+        return exerciseType;
+      } catch (error) {
+        console.error('Error resolving exercise type:', error);
+        throw error;
+      }
+    }
   },
 
   Mutation: {
