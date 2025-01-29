@@ -5,6 +5,8 @@ import { useExercise } from '../../hooks/useExercise';
 import classes from './ActionsGrid.module.css';
 import { useProgress } from '../../hooks/useProgress';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 interface ExerciseCardProps {
     searchTerm?: string;
@@ -18,8 +20,10 @@ interface ExerciseCardProps {
 
 
 export function ExerciseCard({ searchTerm = '', filters = {} }: ExerciseCardProps) {
+  const navigate = useNavigate();
   const { exercises, loading, error } = useExercise();
   const {completeExercise} = useProgress()
+  const [processingExercise, setProcessingExercise] = useState<string | null>(null);
   // Filter exercises based on search term and filters
   const filteredExercises = React.useMemo(() => {
     if (!exercises) return [];
@@ -44,23 +48,43 @@ export function ExerciseCard({ searchTerm = '', filters = {} }: ExerciseCardProp
   }, [exercises, searchTerm, filters]);
 
 
-  const handleStartExercise = async (exerciseId) => {
+  const handleStartExercise = async (e: React.MouseEvent, exerciseId: string) => {
     try {
+      e.stopPropagation(); // Prevent navigation
+      
+      if (processingExercise) return; // Prevent double submission
       if (!exerciseId) {
         throw new Error('Invalid exercise ID');
       }
+
+      setProcessingExercise(exerciseId);
       await completeExercise(exerciseId);
+      
       toast.success('Exercise completed successfully!', {
         duration: 3000,
         position: 'top-right',
       });
     } catch (error) {
-      console.error('Error details:', error);
-      toast.error(error.message || 'Failed to complete exercise. Please try again.', {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to complete exercise. Please try again.';
+      
+      console.error('Error completing exercise:', error);
+      toast.error(errorMessage, {
         duration: 4000,
         position: 'top-right',
       });
+    } finally {
+      setProcessingExercise(null);
     }
+  };
+
+  const handleCardClick = (exerciseId: string) => {
+    if (!exerciseId) {
+      toast.error('Invalid exercise selection');
+      return;
+    }
+    navigate(`/exercise/${exerciseId}`);
   };
 
   if (loading) {
@@ -106,7 +130,14 @@ export function ExerciseCard({ searchTerm = '', filters = {} }: ExerciseCardProp
     <Grid gutter="md">
       {filteredExercises.map((exercise) => (
         <Grid.Col span={6} key={exercise.id}>
-          <Card withBorder radius="md" p="md" className={classes.card}>
+          <Card withBorder radius="md" p="md" className={classes.card}   onClick={() => handleCardClick(exercise.id)} style={{ 
+               cursor: 'pointer',
+               opacity: processingExercise === exercise.id ? 0.7 : 1,
+               height: '280px',
+               display: 'flex',
+               flexDirection: 'column',
+               justifyContent: 'space-between'
+            }}>
             <Card.Section className={classes.section} mt="md">
               <Group justify="apart">
                 <Text fz="lg" fw={500}>
@@ -117,7 +148,11 @@ export function ExerciseCard({ searchTerm = '', filters = {} }: ExerciseCardProp
                 </Badge>
               </Group>
               
-              <Text fz="sm" mt="xs" color="dimmed">
+              <Text fz="sm" mt="xs" color="dimmed"  lineClamp={3} 
+                style={{ 
+                  minHeight: '3.6em', 
+                  overflow: 'hidden'
+                }}>
                 {exercise.description}
               </Text>
 
@@ -138,12 +173,11 @@ export function ExerciseCard({ searchTerm = '', filters = {} }: ExerciseCardProp
               <Button 
                 radius="md" 
                 style={{ flex: 1 }}
-                onClick={() => {
-                    handleStartExercise(exercise.id)
-                  console.log('Selected exercise:', exercise.id);
-                }}
+                loading={processingExercise === exercise.id}
+                disabled={processingExercise === exercise.id}
+                onClick={(e) => handleStartExercise(e, exercise.id)}
               >
-                Start Exercise
+              {processingExercise === exercise.id ? 'Starting...' : 'Start Exercise'}
               </Button>
             </Group>
           </Card>
