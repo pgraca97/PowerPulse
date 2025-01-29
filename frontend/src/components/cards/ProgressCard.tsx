@@ -43,8 +43,11 @@ export function ProgressCard() {
 
           return (
             <div key={item.exerciseType.id}>
-              <Text c="dimmed" fz="sm">
-                {item.exerciseType.title} - Level {item.level}
+              <Text fz="md" fw="bold">
+                {item.exerciseType.title}
+              </Text>
+              <Text c="dimmed" fz="sm" mb={4}>
+                Level {item.level}
               </Text>
               <Text span fw={500} c="bright">
                 {item.points} Points

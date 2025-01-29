@@ -46,9 +46,14 @@ export const userResolvers = {
   UserProgress: {
     exerciseType: async (progress) => {
       try {
+        if (!progress.exerciseTypeId) {
+          throw new Error("Exercise type ID is missing from progress");
+        }
+
         const exerciseType = await ExerciseType.findById(
           progress.exerciseTypeId
         );
+
         if (!exerciseType) {
           throw new Error(
             `ExerciseType not found for id: ${progress.exerciseTypeId}`
@@ -56,12 +61,11 @@ export const userResolvers = {
         }
         return exerciseType;
       } catch (error) {
-        console.error("Error resolving exercise type:", error);
+        console.error("Error in UserProgress.exerciseType resolver:", error);
         throw error;
       }
     },
   },
-
   Mutation: {
     // Firebase auth user creation/update
     createOrUpdateUser: async (_, { input }) => {
@@ -220,8 +224,19 @@ export const userResolvers = {
           dbUser.progress[progressIndex].points += exercise.pointsAwarded;
         }
 
+        // Calculate new level and reset points
         let currentProgress = dbUser.progress[progressIndex];
-        currentProgress.level = Math.floor(currentProgress.points / 100);
+        const oldLevel = currentProgress.level;
+        const newLevel = Math.floor(currentProgress.points / 100);
+
+        if (newLevel > oldLevel) {
+          // If leveled up, keep only the excess points
+          currentProgress.level = newLevel;
+          currentProgress.points = currentProgress.points % 100;
+
+          // Here we could trigger a level up event
+          // TODO: Implement subscription for level up
+        }
 
         await dbUser.save();
 
