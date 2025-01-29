@@ -22,25 +22,29 @@ const GET_EXERCISE = gql`
 `;
 
 const GET_EXERCISES = gql`
-  query GetExercises($filters: ExerciseFilters) {
-    exercises(filters: $filters) {
-      id
-      title
-      description
-      equipment
-      type {
+  query GetExercises($filters: ExerciseFilters, $limit: Int, $offset: Int) {
+    exercises(filters: $filters, limit: $limit, offset: $offset) {
+      exercises {
         id
         title
+        description
+        equipment
+        type {
+          id
+          title
+        }
+        difficulty
+        muscles
+        instructions
+        pointsAwarded
+        createdAt
+        updatedAt
       }
-      difficulty
-      muscles
-      instructions
-      pointsAwarded
-      createdAt
-      updatedAt
+      totalCount
     }
   }
 `;
+
 
 const CREATE_EXERCISE = gql`
   mutation CreateExercise($input: CreateExerciseInput!) {
@@ -89,7 +93,7 @@ const DELETE_EXERCISE = gql`
     deleteExercise(id: $id)
   }
 `;
-export function useExercise(exerciseId) {
+export function useExercise(exerciseId, limit = 10, offset = 0) {
   // Query for a single exercise if ID is provided
   const {
     data: exerciseData,
@@ -105,20 +109,21 @@ export function useExercise(exerciseId) {
     }
   });
 
-  // Query for all exercises with optional filters
+  // Query for all exercises with optional filters and pagination
   const {
     data: exercisesData,
     loading: exercisesLoading,
     error: exercisesError,
     refetch: refetchExercises
   } = useQuery(GET_EXERCISES, {
+    variables: { filters: {}, limit, offset }, 
     fetchPolicy: 'network-only',
     onError: (error) => {
       console.error('Exercises query error:', error);
     }
   });
 
-  // Mutations
+  // Mutations 
   const [createExerciseMutation, { loading: createLoading }] = useMutation(CREATE_EXERCISE);
   const [updateExerciseMutation, { loading: updateLoading }] = useMutation(UPDATE_EXERCISE);
   const [deleteExerciseMutation, { loading: deleteLoading }] = useMutation(DELETE_EXERCISE);
@@ -130,7 +135,7 @@ export function useExercise(exerciseId) {
           input: exerciseData
         }
       });
-      console.log("Resposta da API:", data); 
+      console.log("Resposta da API:", data);
       await refetchExercises();
       return data.createExercise;
     } catch (error) {
@@ -138,7 +143,6 @@ export function useExercise(exerciseId) {
       throw error;
     }
   };
-  
 
   const updateExercise = async (id, exerciseData) => {
     try {
@@ -170,9 +174,9 @@ export function useExercise(exerciseId) {
     }
   };
 
-  const getExercises = async (filters = {}) => {
+  const getExercises = async (filters = {}, pageLimit = 10, pageOffset = 0) => {
     try {
-      const { data } = await refetchExercises({ filters });
+      const { data } = await refetchExercises({ filters, limit: pageLimit, offset: pageOffset });
       return data.exercises;
     } catch (error) {
       console.error('Error in getExercises:', error);
@@ -182,7 +186,8 @@ export function useExercise(exerciseId) {
 
   return {
     exercise: exerciseData?.exercise,
-    exercises: exercisesData?.exercises,
+    exercises: exercisesData?.exercises?.exercises, 
+    totalExercises: exercisesData?.exercises?.totalCount || 0, 
     loading: exerciseLoading || exercisesLoading || createLoading || updateLoading || deleteLoading,
     error: exerciseError || exercisesError,
     createExercise,

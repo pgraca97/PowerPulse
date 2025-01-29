@@ -56,7 +56,8 @@ export function Dashboard() {
   });
   const { getExerciseTypes } = useExerciseType();
   const { loading: exerciseTypesLoading, error: typeError, exerciseTypes } = getExerciseTypes();
-  const { exercises, loading: exercisesLoading, error: exercisesError } = useExercise();
+  const { exercises, totalExercises, refetchExercises,  loading: exercisesLoading, error: exercisesError  } = useExercise(undefined, 10, currentPage * 10);
+
 
 
   // Extract unique difficulties and muscles from exercises

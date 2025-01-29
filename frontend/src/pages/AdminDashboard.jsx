@@ -54,7 +54,7 @@ const AdminDashboard = () => {
     },
   });
 
-  // Gerando lista única de músculos sem repetição
+  // Get muscles from each exercise in the data base
   const muscleOptions = useMemo(() => {
     const uniqueMuscles = new Set();
     exercises?.forEach((exercise) => {

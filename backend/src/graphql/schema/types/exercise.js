@@ -14,51 +14,8 @@ export const exerciseTypes = `
     updatedAt: String!
   }
 
-  enum Difficulty {
-    BEGINNER
-    INTERMEDIATE
-    ADVANCED
-  }
-
-  enum Muscle {
-    CHEST
-    BACK
-    LOWER_BACK
-    HIPS
-    GLUTES
-    SHOULDERS
-    BICEPS
-    TRICEPS
-    LEGS
-    CORE
-    FULL_BODY
-  }
-
-  input CreateExerciseInput {
-    title: String!
-    description: String!
-    typeId: ID!
-    difficulty: Difficulty!
-    muscles: [Muscle!]!
-    instructions: [String!]!
-    equipment: String
-    pointsAwarded: Int!
-  }
-
-  input UpdateExerciseInput {
-    title: String
-    description: String
-    typeId: ID
-    difficulty: Difficulty
-    muscles: [Muscle!]
-    instructions: [String!]
-    equipment: String
-    pointsAwarded: Int
-  }
-
-  input ExerciseFilters {
-    typeId: ID
-    difficulty: Difficulty
-    muscle: Muscle
+  type PaginatedExercises {  
+    exercises: [Exercise!]!
+    totalCount: Int!
   }
 `;

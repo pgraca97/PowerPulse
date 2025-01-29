@@ -24,51 +24,57 @@ export const exerciseResolvers = {
       return exercise;
     },
 
-    exercises: async (_, { filters = {} }, context) => {
+    exercises: async (_, { filters = {}, limit = 10, offset = 0 }, context) => {
       requireAuth(context);
       const query = {};
-
+    
       try {
         if (filters.typeId) {
-          validateObjectId(filters.typeId, 'typeId');
+          validateObjectId(filters.typeId, "typeId");
           const typeExists = await ExerciseType.exists({ _id: filters.typeId });
           if (!typeExists) {
-            throw new NotFoundError('ExerciseType', filters.typeId);
+            throw new NotFoundError("ExerciseType", filters.typeId);
           }
           query.type = filters.typeId;
         }
-
+    
         if (filters.difficulty) {
-          if (!['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].includes(filters.difficulty)) {
-            throw new ValidationError(
-              'Invalid difficulty level',
-              { difficulty: 'Must be BEGINNER, INTERMEDIATE, or ADVANCED' }
-            );
+          if (!["BEGINNER", "INTERMEDIATE", "ADVANCED"].includes(filters.difficulty)) {
+            throw new ValidationError("Invalid difficulty level", {
+              difficulty: "Must be BEGINNER, INTERMEDIATE, or ADVANCED",
+            });
           }
           query.difficulty = filters.difficulty;
         }
-
+    
         if (filters.muscle) {
           const validMuscles = [
-            'CHEST', 'BACK', 'LOWER_BACK', 'SHOULDERS', 'HIPS', 'GLUTES',
-            'BICEPS', 'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
+            "CHEST", "BACK", "LOWER_BACK", "SHOULDERS", "HIPS", "GLUTES",
+            "BICEPS", "TRICEPS", "LEGS", "CORE", "FULL_BODY"
           ];
           if (!validMuscles.includes(filters.muscle)) {
-            throw new ValidationError(
-              'Invalid muscle group',
-              { muscle: `Must be one of: ${validMuscles.join(', ')}` }
-            );
+            throw new ValidationError("Invalid muscle group", {
+              muscle: `Must be one of: ${validMuscles.join(", ")}`,
+            });
           }
           query.muscles = filters.muscle;
         }
-
-        return await Exercise.find(query)
+    
+        // Apply pagination using limit and offset
+        const exercises = await Exercise.find(query)
           .populate("type")
-          .sort({ title: 1 });
+          .sort({ title: 1 })
+          .skip(offset) // <-- Skip first "offset" exercises
+          .limit(limit); // <-- Return only "limit" exercises
+    
+        const totalCount = await Exercise.countDocuments(query); // <-- Get total count for frontend
+    
+        return { exercises, totalCount }; // <-- Return exercises + total count
       } catch (error) {
         return handleMongoError(error);
       }
     },
+    
   },
 
   Mutation: {
