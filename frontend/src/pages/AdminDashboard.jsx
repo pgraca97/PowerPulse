@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+// src/pages/AdminDashboard.jsx
+import { useState } from "react";
 import {
   Container,
   Title,
@@ -13,33 +14,43 @@ import {
   Stack,
   ActionIcon,
   Text,
+  Loader,
+  Center,
+  Textarea,
+  Pagination,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { IconEdit, IconTrash, IconPlus } from "@tabler/icons-react";
-import { useExercise } from "../hooks/useExercise";
+import { useExercises } from "../hooks/useExercises";
+import { useExerciseAdmin } from "../hooks/useExerciseAdmin";
 import { useExerciseType } from "../hooks/useExerciseType";
-import { useProfile } from "../hooks/useProfile";
 
-const AdminDashboard = () => {
+const ITEMS_PER_PAGE = 10;
+
+export function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExercise, setEditingExercise] = useState(null);
-  const { profile, isAdmin } = useProfile();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // Use exercises hook for listing
   const {
     exercises,
+    total,
     loading,
     error,
-    createExercise,
-    updateExercise,
-    deleteExercise,
-  } = useExercise();
+    refetch
+  } = useExercises({
+    limit: ITEMS_PER_PAGE,
+    offset: (currentPage - 1) * ITEMS_PER_PAGE
+  });
+
+  // Use admin hook for operations
+  const { createExercise, updateExercise, deleteExercise } = useExerciseAdmin();
 
   const { getExerciseTypes } = useExerciseType();
   const { exerciseTypes, loading: typesLoading } = getExerciseTypes();
-
-  console.log("Usuário autenticado:", profile);
-  console.log("O usuário é admin?", isAdmin);
 
   const form = useForm({
     initialValues: {
@@ -52,37 +63,39 @@ const AdminDashboard = () => {
       muscles: [],
       instructions: "",
     },
+    validate: {
+      title: (value) => (!value ? 'Title is required' : value.length < 3 ? 'Title must be at least 3 characters' : null),
+      description: (value) => (!value ? 'Description is required' : null),
+      typeId: (value) => (!value ? 'Exercise type is required' : null),
+      instructions: (value) => (!value ? 'Instructions are required' : null),
+      pointsAwarded: (value) => (value < 0 ? 'Points must be positive' : null)
+    }
   });
 
-  // Get muscles from each exercise in the data base
-  const muscleOptions = useMemo(() => {
-    const uniqueMuscles = new Set();
-    exercises?.forEach((exercise) => {
-      exercise.muscles.forEach((muscle) => uniqueMuscles.add(muscle));
-    });
-    return Array.from(uniqueMuscles).map((muscle) => ({
-      value: muscle,
-      label: muscle,
-    }));
-  }, [exercises]);
-
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this exercise?")) {
-      try {
-        await deleteExercise(id);
-        notifications.show({
-          title: "Success",
-          message: "Exercise deleted successfully",
-          color: "green",
-        });
-      } catch (err) {
-        console.error("Error deleting exercise:", err);
-        notifications.show({
-          title: "Error",
-          message: err.message,
-          color: "red",
-        });
+    try {
+      if (!window.confirm("Are you sure you want to delete this exercise?")) {
+        return;
       }
+      
+      setIsSubmitting(true);
+      await deleteExercise(id);
+      await refetch(); // Refresh the data after deletion
+      
+      notifications.show({
+        title: "Success",
+        message: "Exercise deleted successfully",
+        color: "green",
+      });
+    } catch (err) {
+      console.error("Error deleting exercise:", err);
+      notifications.show({
+        title: "Error",
+        message: err.message || 'Failed to delete exercise',
+        color: "red",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -94,45 +107,34 @@ const AdminDashboard = () => {
       difficulty: exercise.difficulty,
       pointsAwarded: exercise.pointsAwarded,
       typeId: exercise.type?.id || "",
-      equipment: exercise.equipment,
+      equipment: exercise.equipment || "",
       muscles: exercise.muscles || [],
-      instructions: exercise.instructions,
+      instructions: exercise.instructions || "",
     });
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (values) => {
     try {
-      if (!values.typeId) {
-        notifications.show({
-          title: "Error",
-          message: "Please select an exercise type.",
-          color: "red",
-        });
-        return;
-      }
-
-      const exerciseData = { ...values };
-
-      if (exerciseData.muscles.length === 0) {
-        exerciseData.muscles = [];
-      }
+      setIsSubmitting(true);
+      const exerciseData = {
+        ...values,
+        muscles: values.muscles.length > 0 ? values.muscles : []
+      };
 
       if (editingExercise) {
         await updateExercise(editingExercise.id, exerciseData);
-        notifications.show({
-          title: "Success",
-          message: "Exercise updated successfully",
-          color: "green",
-        });
       } else {
         await createExercise(exerciseData);
-        notifications.show({
-          title: "Success",
-          message: "Exercise created successfully",
-          color: "green",
-        });
       }
+
+      await refetch(); // Refresh the data after creation/update
+      
+      notifications.show({
+        title: "Success",
+        message: `Exercise ${editingExercise ? 'updated' : 'created'} successfully`,
+        color: "green",
+      });
 
       setIsModalOpen(false);
       form.reset();
@@ -140,14 +142,37 @@ const AdminDashboard = () => {
     } catch (err) {
       notifications.show({
         title: "Error",
-        message: err.message,
+        message: err.message || 'Failed to save exercise',
         color: "red",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (loading || typesLoading) return <Text>Loading...</Text>;
-  if (error) return <Text color="red">Error: {error.message}</Text>;
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  if (loading || typesLoading) {
+    return (
+      <Center h="70vh">
+        <Loader size="xl" />
+      </Center>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container>
+        <Text color="red" size="lg" ta="center">
+          Error: {error.message}
+        </Text>
+      </Container>
+    );
+  }
+
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
   return (
     <Container size="xl" py="xl">
@@ -160,59 +185,84 @@ const AdminDashboard = () => {
             setEditingExercise(null);
             setIsModalOpen(true);
           }}
+          disabled={isSubmitting}
         >
           Add Exercise
         </Button>
       </Group>
 
-      <Table>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Type</Table.Th>
-            <Table.Th>Difficulty</Table.Th>
-            <Table.Th>Points</Table.Th>
-            <Table.Th>Actions</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {exercises?.map((exercise) => (
-            <Table.Tr key={exercise.id}>
-              <Table.Td>{exercise.title}</Table.Td>
-              <Table.Td>{exercise.type.title}</Table.Td>
-              <Table.Td>{exercise.difficulty}</Table.Td>
-              <Table.Td>{exercise.pointsAwarded}</Table.Td>
-              <Table.Td>
-                <Group gap="xs">
-                  <ActionIcon
-                    variant="subtle"
-                    color="blue"
-                    onClick={() => handleEdit(exercise)}
-                  >
-                    <IconEdit size={16} stroke={1.5} />
-                  </ActionIcon>
-                  <ActionIcon
-                    variant="subtle"
-                    color="red"
-                    onClick={() => handleDelete(exercise.id)}
-                  >
-                    <IconTrash size={16} stroke={1.5} />
-                  </ActionIcon>
-                </Group>
-              </Table.Td>
+      <Stack>
+        <Table striped highlightOnHover withTableBorder>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Name</Table.Th>
+              <Table.Th>Type</Table.Th>
+              <Table.Th>Difficulty</Table.Th>
+              <Table.Th>Points</Table.Th>
+              <Table.Th>Actions</Table.Th>
             </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+          </Table.Thead>
+          <Table.Tbody>
+            {exercises?.map((exercise) => (
+              <Table.Tr key={exercise.id}>
+                <Table.Td>{exercise.title}</Table.Td>
+                <Table.Td>{exercise.type.title}</Table.Td>
+                <Table.Td>{exercise.difficulty}</Table.Td>
+                <Table.Td>{exercise.pointsAwarded}</Table.Td>
+                <Table.Td>
+                  <Group gap="xs">
+                    <ActionIcon
+                      variant="subtle"
+                      color="blue"
+                      onClick={() => handleEdit(exercise)}
+                      disabled={isSubmitting}
+                      title="Edit exercise"
+                    >
+                      <IconEdit size={16} stroke={1.5} />
+                    </ActionIcon>
+                    <ActionIcon
+                      variant="subtle"
+                      color="red"
+                      onClick={() => handleDelete(exercise.id)}
+                      disabled={isSubmitting}
+                      title="Delete exercise"
+                    >
+                      <IconTrash size={16} stroke={1.5} />
+                    </ActionIcon>
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
 
+        {/* Pagination Controls */}
+        <Group justify="space-between" mt="md">
+          <Text size="sm" c="dimmed">
+            Showing {exercises?.length || 0} of {total} exercises
+          </Text>
+          <Pagination
+            value={currentPage}
+            onChange={handlePageChange}
+            total={totalPages}
+            boundaries={1}
+            siblings={1}
+          />
+        </Group>
+      </Stack>
+
+      {/* Exercise Form Modal */}
       <Modal
         opened={isModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
-          setEditingExercise(null);
-          form.reset();
+          if (!isSubmitting) {
+            setIsModalOpen(false);
+            setEditingExercise(null);
+            form.reset();
+          }
         }}
         title={editingExercise ? "Edit Exercise" : "Add New Exercise"}
+        size="lg"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack>
@@ -222,10 +272,11 @@ const AdminDashboard = () => {
               required
               {...form.getInputProps("title")}
             />
-            <TextInput
+            <Textarea
               label="Description"
               placeholder="Exercise description"
               required
+              minRows={3}
               {...form.getInputProps("description")}
             />
             <TextInput
@@ -233,14 +284,16 @@ const AdminDashboard = () => {
               placeholder="Required equipment"
               {...form.getInputProps("equipment")}
             />
-            <TextInput
+            <Textarea
               label="Instructions"
               placeholder="Exercise instructions"
               required
+              minRows={3}
               {...form.getInputProps("instructions")}
             />
             <Select
               label="Exercise Type"
+              placeholder="Select exercise type"
               required
               data={
                 exerciseTypes?.map((type) => ({
@@ -253,13 +306,29 @@ const AdminDashboard = () => {
             <MultiSelect
               label="Muscles"
               placeholder="Select muscles used"
-              data={muscleOptions}
+              data={exercises?.reduce((acc, exercise) => {
+                exercise.muscles.forEach(muscle => {
+                  if (!acc.some(item => item.value === muscle)) {
+                    acc.push({
+                      value: muscle,
+                      label: muscle.replace('_', ' ').toLowerCase()
+                        .replace(/\b\w/g, l => l.toUpperCase())
+                    });
+                  }
+                });
+                return acc;
+              }, []) || []}
+              searchable
               {...form.getInputProps("muscles")}
             />
             <Select
               label="Difficulty"
               required
-              data={["BEGINNER", "INTERMEDIATE", "ADVANCED"]}
+              data={[
+                { value: 'BEGINNER', label: 'Beginner' },
+                { value: 'INTERMEDIATE', label: 'Intermediate' },
+                { value: 'ADVANCED', label: 'Advanced' }
+              ]}
               {...form.getInputProps("difficulty")}
             />
             <NumberInput
@@ -268,7 +337,11 @@ const AdminDashboard = () => {
               min={0}
               {...form.getInputProps("pointsAwarded")}
             />
-            <Button type="submit">
+            <Button 
+              type="submit" 
+              loading={isSubmitting}
+              mt="md"
+            >
               {editingExercise ? "Update" : "Create"} Exercise
             </Button>
           </Stack>
@@ -276,6 +349,4 @@ const AdminDashboard = () => {
       </Modal>
     </Container>
   );
-};
-
-export default AdminDashboard;
+}
