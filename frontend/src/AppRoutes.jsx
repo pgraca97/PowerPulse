@@ -5,6 +5,7 @@ import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { ProfileEdit } from './pages/ProfileEdit';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ExerciseDetails } from './pages/ExerciseDetails';
 
 export function AppRoutes() {
   return (
@@ -20,6 +21,8 @@ export function AppRoutes() {
           element={<ProtectedRoute component={ProfileEdit} />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="/exercise/:id" element={<ExerciseDetails />} />
       </Route>
     </Routes>
   );

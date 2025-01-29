@@ -9,9 +9,12 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { Toaster } from 'react-hot-toast';
 
+
 function App() {
   return (
     <>
+
+
     <Toaster />
     <MantineProvider>
       <Notifications position="top-right" />
