@@ -41,9 +41,10 @@ export const exerciseResolvers = {
 
         // add search by text if provided
         if (search) {
+          const searchRegex = new RegExp(`^${search}`, 'i');
           query.$or = [
-            { title: { $regex: search, $options: "i" } },
-            { description: { $regex: search, $options: "i" } },
+            { title: searchRegex },
+            {description: { $regex: search, $options: 'i' }},
           ];
         }
         if (typeId) {

@@ -1,10 +1,33 @@
 // src/components/cards/FiltersCard.jsx
 
 import { Stack, Button, Menu } from '@mantine/core';
-import { IconChevronDown } from '@tabler/icons-react';
+import { IconChevronDown, IconTrash } from '@tabler/icons-react';
 import PropTypes from 'prop-types';
 
-export function FilterButtons({ onFilterChange, selectedFilters, exerciseTypes, difficulties, muscles }) {
+export function FilterButtons({ 
+  onFilterChange, 
+  selectedFilters, 
+  exerciseTypes, 
+  difficulties, 
+  muscles,
+  onClearAll // Novo prop para limpar tudo, incluindo search
+}) {
+  const getTypeTitle = (typeId) => {
+    const type = exerciseTypes.find(t => t.id === typeId);
+    return type ? type.title : 'Type';
+  };
+
+  // Função para limpar todos os filtros
+  const handleClearAll = () => {
+    onFilterChange('typeId', null);
+    onFilterChange('difficulty', null);
+    onFilterChange('muscle', null);
+    onClearAll?.(); // Chama a função que vai limpar o search também
+  };
+
+  const hasActiveFilters = selectedFilters.typeId || 
+                          selectedFilters.difficulty || 
+                          selectedFilters.muscle;
   return (
     <Stack spacing="md">
       {/* Difficulty Filter */}
@@ -76,7 +99,7 @@ export function FilterButtons({ onFilterChange, selectedFilters, exerciseTypes, 
             rightSection={<IconChevronDown size={14} />}
             color={selectedFilters.typeId ? "blue" : "gray"}
           >
-            {selectedFilters.typeId || 'Type'}
+            {selectedFilters.typeId ? getTypeTitle(selectedFilters.typeId) : 'Type'}
           </Button>
         </Menu.Target>
 
@@ -91,7 +114,7 @@ export function FilterButtons({ onFilterChange, selectedFilters, exerciseTypes, 
           )}
           {exerciseTypes.map((type) => (
             <Menu.Item
-              key={type.title}
+              key={type.id}
               onClick={() => onFilterChange('typeId', type.id)}
             >
               {type.title}
@@ -101,15 +124,12 @@ export function FilterButtons({ onFilterChange, selectedFilters, exerciseTypes, 
       </Menu>
 
       {/* Clear All Filters Button */}
-      {(selectedFilters.typeId || selectedFilters.difficulty || selectedFilters.muscle) && (
+      {hasActiveFilters && (
         <Button
           variant="outline"
           color="red"
-          onClick={() => {
-            onFilterChange('typeId', null);
-            onFilterChange('difficulty', null);
-            onFilterChange('muscle', null);
-          }}
+          onClick={handleClearAll}
+          leftIcon={<IconTrash size={16} />}
         >
           Clear All Filters
         </Button>
@@ -127,11 +147,11 @@ FilterButtons.propTypes = {
   }).isRequired,
   exerciseTypes: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    description: PropTypes.string
+    title: PropTypes.string.isRequired
   })).isRequired,
   difficulties: PropTypes.arrayOf(PropTypes.string).isRequired,
-  muscles: PropTypes.arrayOf(PropTypes.string).isRequired
+  muscles: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onClearAll: PropTypes.func
 };
 
 export default FilterButtons;

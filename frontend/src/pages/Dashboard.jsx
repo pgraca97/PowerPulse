@@ -18,7 +18,7 @@ export function Dashboard() {
   const [filters, setFilters] = useState({
     typeId: null,
     difficulty: null,
-    muscle: null,
+    muscle: null
   });
   
   const { getExerciseTypes } = useExerciseType();
@@ -48,10 +48,19 @@ export function Dashboard() {
   }, [exercises]);
 
   const handleFilterChange = (filterType, value) => {
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
-      [filterType]: value,
+      [filterType]: value
     }));
+  };
+
+  const handleClearAll = () => {
+    setFilters({
+      typeId: null,
+      difficulty: null,
+      muscle: null
+    });
+    setSearchTerm(''); // Limpa o search também
   };
 
   if (exerciseTypesLoading || exercisesLoading) {
@@ -78,16 +87,19 @@ export function Dashboard() {
           </Box>
         </Box>
 
-        {/* Main Column - Exercises */}
+        {/* Main Column */}
         <Box w="60%">
-          <InputWithButton onSearch={setSearchTerm} />
-          <Box mt="md" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
-            <Title order={3} mb="md">Exercises</Title>
+          <InputWithButton 
+            onSearch={setSearchTerm}
+            value={searchTerm}
+            onChange={setSearchTerm}
+          />
+          <Box mt="md">
             <ExerciseCard searchTerm={searchTerm} filters={filters} />
           </Box>
         </Box>
 
-        {/* Right Column - Filters */}
+        {/* Filters Column */}
         <Box w="20%">
           <Title order={3} mb="md">Filters</Title>
           <FilterButtons 
@@ -96,6 +108,7 @@ export function Dashboard() {
             exerciseTypes={exerciseTypes || []}
             difficulties={difficulties}
             muscles={muscles}
+            onClearAll={handleClearAll}
           />
         </Box>
       </Flex>
