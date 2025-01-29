@@ -1,4 +1,4 @@
-import { useQuery, useMutation, gql } from '@apollo/client';
+import { useQuery, useMutation, gql } from "@apollo/client";
 
 const GET_EXERCISE = gql`
   query GetExercise($id: ID!) {
@@ -44,7 +44,6 @@ const GET_EXERCISES = gql`
     }
   }
 `;
-
 
 const CREATE_EXERCISE = gql`
   mutation CreateExercise($input: CreateExerciseInput!) {
@@ -93,20 +92,20 @@ const DELETE_EXERCISE = gql`
     deleteExercise(id: $id)
   }
 `;
-export function useExercise(exerciseId, limit = 10, offset = 0) {
+export function useExercise(exerciseId, limit = 20, offset = 0) {
   // Query for a single exercise if ID is provided
   const {
     data: exerciseData,
     loading: exerciseLoading,
     error: exerciseError,
-    refetch: refetchExercise
+    refetch: refetchExercise,
   } = useQuery(GET_EXERCISE, {
     variables: { id: exerciseId },
     skip: !exerciseId,
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
     onError: (error) => {
-      console.error('Exercise query error:', error);
-    }
+      console.error("Exercise query error:", error);
+    },
   });
 
   // Query for all exercises with optional filters and pagination
@@ -114,26 +113,29 @@ export function useExercise(exerciseId, limit = 10, offset = 0) {
     data: exercisesData,
     loading: exercisesLoading,
     error: exercisesError,
-    refetch: refetchExercises
+    refetch: refetchExercises,
   } = useQuery(GET_EXERCISES, {
-    variables: { filters: {}, limit, offset }, 
-    fetchPolicy: 'network-only',
+    variables: { filters: {}, limit, offset },
+    fetchPolicy: "network-only",
     onError: (error) => {
-      console.error('Exercises query error:', error);
-    }
+      console.error("Exercises query error:", error);
+    },
   });
 
-  // Mutations 
-  const [createExerciseMutation, { loading: createLoading }] = useMutation(CREATE_EXERCISE);
-  const [updateExerciseMutation, { loading: updateLoading }] = useMutation(UPDATE_EXERCISE);
-  const [deleteExerciseMutation, { loading: deleteLoading }] = useMutation(DELETE_EXERCISE);
+  // Mutations
+  const [createExerciseMutation, { loading: createLoading }] =
+    useMutation(CREATE_EXERCISE);
+  const [updateExerciseMutation, { loading: updateLoading }] =
+    useMutation(UPDATE_EXERCISE);
+  const [deleteExerciseMutation, { loading: deleteLoading }] =
+    useMutation(DELETE_EXERCISE);
 
   const createExercise = async (exerciseData) => {
     try {
       const { data } = await createExerciseMutation({
         variables: {
-          input: exerciseData
-        }
+          input: exerciseData,
+        },
       });
       console.log("Resposta da API:", data);
       await refetchExercises();
@@ -149,14 +151,14 @@ export function useExercise(exerciseId, limit = 10, offset = 0) {
       const { data } = await updateExerciseMutation({
         variables: {
           id,
-          input: exerciseData
-        }
+          input: exerciseData,
+        },
       });
       await refetchExercises();
       if (exerciseId) await refetchExercise();
       return data.updateExercise;
     } catch (error) {
-      console.error('Error in updateExercise:', error);
+      console.error("Error in updateExercise:", error);
       throw error;
     }
   };
@@ -164,37 +166,46 @@ export function useExercise(exerciseId, limit = 10, offset = 0) {
   const deleteExercise = async (id) => {
     try {
       const { data } = await deleteExerciseMutation({
-        variables: { id }
+        variables: { id },
       });
       await refetchExercises();
       return data.deleteExercise;
     } catch (error) {
-      console.error('Error in deleteExercise:', error);
+      console.error("Error in deleteExercise:", error);
       throw error;
     }
   };
 
   const getExercises = async (filters = {}, pageLimit = 10, pageOffset = 0) => {
     try {
-      const { data } = await refetchExercises({ filters, limit: pageLimit, offset: pageOffset });
+      const { data } = await refetchExercises({
+        filters,
+        limit: pageLimit,
+        offset: pageOffset,
+      });
       return data.exercises;
     } catch (error) {
-      console.error('Error in getExercises:', error);
+      console.error("Error in getExercises:", error);
       throw error;
     }
   };
 
   return {
     exercise: exerciseData?.exercise,
-    exercises: exercisesData?.exercises?.exercises, 
-    totalExercises: exercisesData?.exercises?.totalCount || 0, 
-    loading: exerciseLoading || exercisesLoading || createLoading || updateLoading || deleteLoading,
+    exercises: exercisesData?.exercises?.exercises,
+    totalExercises: exercisesData?.exercises?.totalCount || 0,
+    loading:
+      exerciseLoading ||
+      exercisesLoading ||
+      createLoading ||
+      updateLoading ||
+      deleteLoading,
     error: exerciseError || exercisesError,
     createExercise,
     updateExercise,
     deleteExercise,
     getExercises,
     refetchExercise,
-    refetchExercises
+    refetchExercises,
   };
 }
