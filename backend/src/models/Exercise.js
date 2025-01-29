@@ -1,6 +1,7 @@
 // src/models/Exercise.js
 
 import mongoose from "mongoose";
+import { DIFFICULTY_LEVELS, MUSCLE_GROUPS } from "../constants/exercise.js";
 
 const exerciseSchema = new mongoose.Schema(
   {
@@ -25,25 +26,13 @@ const exerciseSchema = new mongoose.Schema(
     },
     difficulty: {
       type: String,
-      enum: ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      enum: DIFFICULTY_LEVELS,
       required: true,
     },
     muscles: [
       {
         type: String,
-        enum: [
-          "CHEST",
-          "BACK",
-          "LOWER_BACK",
-          "SHOULDERS",
-          "HIPS",
-          "GLUTES",
-          "BICEPS",
-          "TRICEPS",
-          "LEGS",
-          "CORE",
-          "FULL_BODY",
-        ],
+        enum: MUSCLE_GROUPS,
         required: true,
       },
     ],

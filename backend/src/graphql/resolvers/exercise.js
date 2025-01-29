@@ -9,6 +9,7 @@ import {
   validateObjectId,
   validateRequiredFields 
 } from "../../middleware/validation.js";
+import { DIFFICULTY_LEVELS, MUSCLE_GROUPS } from "../../constants/exercise.js";
 
 
 export const exerciseResolvers = {
@@ -39,23 +40,24 @@ export const exerciseResolvers = {
         }
     
         if (filters.difficulty) {
-          if (!["BEGINNER", "INTERMEDIATE", "ADVANCED"].includes(filters.difficulty)) {
-            throw new ValidationError("Invalid difficulty level", {
-              difficulty: "Must be BEGINNER, INTERMEDIATE, or ADVANCED",
-            });
+
+          if (!DIFFICULTY_LEVELS.includes(filters.difficulty)) {
+            throw new ValidationError(
+              'Invalid difficulty level',
+              { difficulty: `Must be one of: ${DIFFICULTY_LEVELS.join(', ')}` } 
+            );
           }
           query.difficulty = filters.difficulty;
         }
     
         if (filters.muscle) {
-          const validMuscles = [
-            "CHEST", "BACK", "LOWER_BACK", "SHOULDERS", "HIPS", "GLUTES",
-            "BICEPS", "TRICEPS", "LEGS", "CORE", "FULL_BODY"
-          ];
-          if (!validMuscles.includes(filters.muscle)) {
-            throw new ValidationError("Invalid muscle group", {
-              muscle: `Must be one of: ${validMuscles.join(", ")}`,
-            });
+
+
+          if (!MUSCLE_GROUPS.includes(filters.muscle)) {
+            throw new ValidationError(
+              'Invalid muscle group',
+              { muscle: `Must be one of: ${MUSCLE_GROUPS.join(', ')}` }
+            );
           }
           query.muscles = filters.muscle;
         }
@@ -117,24 +119,19 @@ export const exerciseResolvers = {
         }
 
         // Validate difficulty
-        if (!['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].includes(input.difficulty)) {
+        if (!DIFFICULTY_LEVELS.includes(input.difficulty)) {
           throw new ValidationError(
             'Invalid difficulty level',
-            { difficulty: 'Must be BEGINNER, INTERMEDIATE, or ADVANCED' }
+            { difficulty: `Must be one of: ${DIFFICULTY_LEVELS.join(', ')}` }
           );
         }
 
-        // Validate muscles
-        const validMuscles = [
-          'CHEST', 'BACK', 'LOWER_BACK', 'SHOULDERS', 'HIPS', 'GLUTES',
-          'BICEPS', 'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
-        ];
         
         input.muscles.forEach(muscle => {
-          if (!validMuscles.includes(muscle)) {
+          if (!MUSCLE_GROUPS.includes(muscle)) {
             throw new ValidationError(
               'Invalid muscle group',
-              { muscles: `Must be one of: ${validMuscles.join(', ')}` }
+              { muscles: `Must be one of: ${MUSCLE_GROUPS.join(', ')}` }
             );
           }
         });
@@ -205,26 +202,22 @@ export const exerciseResolvers = {
 
         // validate difficulty if provided
         if (input.difficulty) {
-          if (!['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].includes(input.difficulty)) {
+          if (!DIFFICULTY_LEVELS.includes(input.difficulty)) {
             throw new ValidationError(
               'Invalid difficulty level',
-              { difficulty: 'Must be BEGINNER, INTERMEDIATE, or ADVANCED' }
+              { difficulty: `Must be one of: ${DIFFICULTY_LEVELS.join(', ')}` }
             );
           }
         }
 
         // validate muscles if provided
         if (input.muscles) {
-          const validMuscles = [
-            'CHEST', 'BACK', 'LOWER_BACK', 'SHOULDERS', 'HIPS', 'GLUTES',
-            'BICEPS', 'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
-          ];
-          
+
           input.muscles.forEach(muscle => {
-            if (!validMuscles.includes(muscle)) {
+            if (!MUSCLE_GROUPS.includes(muscle)) {
               throw new ValidationError(
                 'Invalid muscle group',
-                { muscles: `Must be one of: ${validMuscles.join(', ')}` }
+                { muscles: `Must be one of: ${MUSCLE_GROUPS.join(', ')}` }
               );
             }
           });

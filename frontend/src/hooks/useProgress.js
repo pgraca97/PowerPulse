@@ -72,6 +72,7 @@ export function useProgress() {
       });
 
       return data.completeExercise;
+      refetchProgress();
     } catch (error) {
       console.error("Error completing exercise:", error);
       const errorMessage =
