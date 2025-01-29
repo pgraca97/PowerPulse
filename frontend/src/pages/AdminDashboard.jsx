@@ -19,7 +19,7 @@ import { notifications } from "@mantine/notifications";
 import { IconEdit, IconTrash, IconPlus } from "@tabler/icons-react";
 import { useExercise } from "../hooks/useExercise";
 import { useExerciseType } from "../hooks/useExerciseType";
-import { useProfile } from "../hooks/useProfile"
+import { useProfile } from "../hooks/useProfile";
 
 const AdminDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,7 +66,6 @@ const AdminDashboard = () => {
     }));
   }, [exercises]);
 
-
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this exercise?")) {
       try {
@@ -86,8 +85,6 @@ const AdminDashboard = () => {
       }
     }
   };
-  
-
 
   const handleEdit = (exercise) => {
     setEditingExercise(exercise);
@@ -103,7 +100,6 @@ const AdminDashboard = () => {
     });
     setIsModalOpen(true);
   };
-  
 
   const handleSubmit = async (values) => {
     try {
