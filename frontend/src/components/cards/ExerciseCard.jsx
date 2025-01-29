@@ -1,6 +1,6 @@
 // src/components/cards/ExerciseCard.jsx
 import { useState, useEffect, useCallback } from "react";
-import { Badge, Button, Card, Group, Text, Stack, Loader, Grid } from "@mantine/core";
+import { Badge, Button, Card, Group, Text, Stack, Loader, Grid, Box } from "@mantine/core";
 import { useExercises } from "../../hooks/useExercises.js";
 import { useProgress } from "../../hooks/useProgress";
 import { useNavigate } from "react-router-dom";
@@ -8,11 +8,10 @@ import toast from "react-hot-toast";
 import classes from "./ActionsGrid.module.css";
 import PropTypes from 'prop-types';
 
-export function ExerciseCard({ searchTerm = "", filters = {} }) {
+function ExerciseCard({ searchTerm = "", filters = {} }) {
   const navigate = useNavigate();
   const [processingExercise, setProcessingExercise] = useState(null);
   
-  // Get exercises with initial filters
   const { exercises, loading, error, loadMore, hasMore, total } = useExercises({
     search: searchTerm,
     typeId: filters.typeId,  
@@ -23,10 +22,10 @@ export function ExerciseCard({ searchTerm = "", filters = {} }) {
 
   const { completeExercise, refetchProgress } = useProgress();
 
-  // Infinite scroll handler
-  const handleScroll = useCallback((entries) => {
-    const target = entries[0];
-    if (target.isIntersecting && hasMore && !loading) {
+  // Infinite scroll handler with container ref
+  const handleScroll = useCallback((event) => {
+    const { scrollTop, clientHeight, scrollHeight } = event.target;
+    if (scrollHeight - scrollTop <= clientHeight * 1.5 && hasMore && !loading) {
       loadMore();
     }
   }, [hasMore, loading, loadMore]);
@@ -100,25 +99,32 @@ export function ExerciseCard({ searchTerm = "", filters = {} }) {
   };
 
   return (
-    <>
-      <Grid gutter="md">
-        {exercises.map((exercise) => (
-          <Grid.Col span={6} key={exercise.id}>
-            <Card
-              withBorder
-              radius="md"
-              p="md"
-              className={classes.card}
-              onClick={() => handleCardClick(exercise.id)}
-              style={{
-                cursor: "pointer",
-                opacity: processingExercise === exercise.id ? 0.7 : 1,
-                height: "280px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
+    <Box>
+      <Box 
+        h="calc(100vh - 280px)" 
+        style={{ overflowY: 'auto' }} 
+        onScroll={handleScroll}
+        pb={20}
+      >
+        <Grid gutter="md">
+          {exercises.map((exercise) => (
+            <Grid.Col span={6} key={exercise.id}>
+              {/* Exercise Card content remains the same */}
+              <Card
+                withBorder
+                radius="md"
+                p="md"
+                className={classes.card}
+                onClick={() => handleCardClick(exercise.id)}
+                style={{
+                  cursor: "pointer",
+                  opacity: processingExercise === exercise.id ? 0.7 : 1,
+                  height: "280px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
               <Card.Section className={classes.section} mt="md">
                 <Group justify="apart">
                   <Text fz="lg" fw={500}>
@@ -168,23 +174,22 @@ export function ExerciseCard({ searchTerm = "", filters = {} }) {
                     : "Start Exercise"}
                 </Button>
               </Group>
-            </Card>
-          </Grid.Col>
-        ))}
-      </Grid>
-      
-      {/* Infinite scroll trigger */}
-      {hasMore && (
-        <div id="load-more-trigger" style={{ height: '20px', margin: '20px 0' }}>
-          <Loader size="sm" />
-        </div>
-      )}
+              </Card>
+            </Grid.Col>
+          ))}
+        </Grid>
+        
+        {loading && (
+          <Stack align="center" mt="md">
+            <Loader size="sm" />
+          </Stack>
+        )}
+      </Box>
 
-      {/* Total count */}
       <Text align="center" size="sm" c="dimmed" mt="md">
         Showing {exercises.length} of {total} exercises
       </Text>
-    </>
+    </Box>
   );
 }
 
