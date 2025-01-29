@@ -149,7 +149,7 @@ export function ExerciseDetails() {
           variant="filled"
         >
           <Stack spacing="md">
-            <Text>The exercise you're looking for doesn't exist or has been removed.</Text>
+            <Text>The exercise you&apos;re looking for doesn&apos;t exist or has been removed.</Text>
             <Button 
               variant="white" 
               onClick={() => navigate('/exercises')}

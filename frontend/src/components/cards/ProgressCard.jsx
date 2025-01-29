@@ -1,10 +1,9 @@
-import React from "react";
+// src/components/cards/ProgressCard.jsx
 import { Card, Text, Stack, Progress, Loader } from "@mantine/core";
 import { useProgress } from "../../hooks/useProgress";
 
 export function ProgressCard() {
   const { progress, loading, error } = useProgress();
-
 
   if (loading) {
     return (
@@ -59,3 +58,6 @@ export function ProgressCard() {
     </Card>
   );
 }
+
+
+export default ProgressCard;

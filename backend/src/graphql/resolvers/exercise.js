@@ -27,30 +27,39 @@ export const exerciseResolvers = {
 
     exercises: async (_, { filters = {}, limit = 10, offset = 0 }, context) => {
       requireAuth(context);
-      const query = {};
-    
-      try {
-        if (filters.typeId) {
-          validateObjectId(filters.typeId, "typeId");
-          const typeExists = await ExerciseType.exists({ _id: filters.typeId });
-          if (!typeExists) {
-            throw new NotFoundError("ExerciseType", filters.typeId);
-          }
-          query.type = filters.typeId;
-        }
-    
-        if (filters.difficulty) {
+      const { search, typeId, difficulty, muscle, limit = 10, offset = 0 } = filters;
+     console.log("filters", filters);
 
-          if (!DIFFICULTY_LEVELS.includes(filters.difficulty)) {
+      try {
+        let query = {};
+
+        // add search by text if provided
+        if (search) {
+          query.$or = [
+            {title: { $regex: search, $options: 'i' }},
+            {description: { $regex: search, $options: 'i' }},
+          ];
+        }
+        if (typeId) {
+          validateObjectId(typeId, 'typeId');
+          const typeExists = await ExerciseType.exists({ _id: typeId });
+          if (!typeExists) {
+            throw new NotFoundError('ExerciseType', typeId);
+          }
+          query.type = typeId;
+        }
+
+        if (difficulty) {
+          if (!DIFFICULTY_LEVELS.includes(difficulty)) {
             throw new ValidationError(
               'Invalid difficulty level',
               { difficulty: `Must be one of: ${DIFFICULTY_LEVELS.join(', ')}` } 
             );
           }
-          query.difficulty = filters.difficulty;
+          query.difficulty = difficulty;
         }
-    
-        if (filters.muscle) {
+
+        if (muscle) {
 
 
           if (!MUSCLE_GROUPS.includes(filters.muscle)) {
@@ -59,19 +68,24 @@ export const exerciseResolvers = {
               { muscle: `Must be one of: ${MUSCLE_GROUPS.join(', ')}` }
             );
           }
-          query.muscles = filters.muscle;
+          query.muscles = muscle;
         }
-    
-        // Apply pagination using limit and offset
+
+        // total count for pagination
+        const total = await Exercise.countDocuments(query);
+
+        // fetch exercises with filters and pagination
         const exercises = await Exercise.find(query)
-          .populate("type")
-          .sort({ title: 1 })
-          .skip(offset) // <-- Skip first "offset" exercises
-          .limit(limit); // <-- Return only "limit" exercises
-    
-        const totalCount = await Exercise.countDocuments(query); // <-- Get total count for frontend
-    
-        return { exercises, totalCount }; // <-- Return exercises + total count
+        .populate("type")
+        .sort({ title: 1 })
+        .skip(offset)
+        .limit(limit);
+
+        return {
+          exercises,
+          total,
+          hasMore: offset + exercises.length < total
+        }
       } catch (error) {
         return handleMongoError(error);
       }
