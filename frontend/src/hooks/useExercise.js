@@ -22,8 +22,8 @@ const GET_EXERCISE = gql`
 `;
 
 const GET_EXERCISES = gql`
-  query GetExercises($filters: ExerciseFilters, $limit: Int, $offset: Int) {
-    exercises(filters: $filters, limit: $limit, offset: $offset) {
+  query GetExercises($filters: ExerciseFilters) {
+    exercises(filters: $filters) {
       exercises {
         id
         title
@@ -40,7 +40,8 @@ const GET_EXERCISES = gql`
         createdAt
         updatedAt
       }
-      totalCount
+      total
+      hasMore
     }
   }
 `;
@@ -92,7 +93,8 @@ const DELETE_EXERCISE = gql`
     deleteExercise(id: $id)
   }
 `;
-export function useExercise(exerciseId, limit = 20, offset = 0) {
+
+export function useExercise(exerciseId) {
   // Query for a single exercise if ID is provided
   const {
     data: exerciseData,
