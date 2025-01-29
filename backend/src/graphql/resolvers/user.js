@@ -46,18 +46,28 @@ export const userResolvers = {
   UserProgress: {
     exerciseType: async (progress) => {
       try {
+        console.log('UserProgress resolver - progress object:', progress);
+        console.log('UserProgress resolver - exerciseTypeId:', progress.exerciseTypeId);
+        
+        if (!progress.exerciseTypeId) {
+          console.error('Exercise type ID is missing from progress');
+          throw new Error('Exercise type ID is missing from progress');
+        }
+        
         const exerciseType = await ExerciseType.findById(progress.exerciseTypeId);
+        console.log('UserProgress resolver - found exerciseType:', exerciseType);
+        
         if (!exerciseType) {
+          console.error(`ExerciseType not found for id: ${progress.exerciseTypeId}`);
           throw new Error(`ExerciseType not found for id: ${progress.exerciseTypeId}`);
         }
         return exerciseType;
       } catch (error) {
-        console.error('Error resolving exercise type:', error);
+        console.error('Error in UserProgress.exerciseType resolver:', error);
         throw error;
       }
     }
   },
-
   Mutation: {
     // Firebase auth user creation/update
     createOrUpdateUser: async (_, { input }) => {
@@ -183,6 +193,8 @@ export const userResolvers = {
         
         // Fetch exercise with type info
         const exercise = await Exercise.findById(exerciseId).populate('type');
+        console.log('CompleteExercise - found exercise:', exercise);
+        
         if (!exercise) {
           throw new NotFoundError('Exercise', exerciseId);
         }
@@ -196,6 +208,9 @@ export const userResolvers = {
         let progressIndex = dbUser.progress.findIndex(
           p => p.exerciseTypeId.toString() === exercise.type._id.toString()
         );
+
+        console.log('CompleteExercise - progressIndex:', progressIndex);
+        console.log('CompleteExercise - exercise.type._id:', exercise.type._id);
 
         if (progressIndex === -1) {
           // Initialize new progress
@@ -212,18 +227,23 @@ export const userResolvers = {
 
         // Calculate new level (level up every 100 points)
         let currentProgress = dbUser.progress[progressIndex];
+        console.log('CompleteExercise - before level calculation - currentProgress:', currentProgress);
+        
         currentProgress.level = Math.floor(currentProgress.points / 100);
-
+        
         await dbUser.save();
+        console.log('CompleteExercise - after save - currentProgress:', currentProgress);
 
-        // Get exercise type for return
+        // Verificar se o exerciseType existe antes de retornar
         const exerciseType = await ExerciseType.findById(currentProgress.exerciseTypeId);
+        console.log('CompleteExercise - found exerciseType:', exerciseType);
+        
         if (!exerciseType) {
           throw new NotFoundError('ExerciseType', currentProgress.exerciseTypeId);
         }
 
         return {
-          exerciseType: exerciseType,
+          exerciseTypeId: exerciseType.id,
           level: currentProgress.level,
           points: currentProgress.points
         };
