@@ -7,9 +7,12 @@ import { AuthProvider } from './providers/AuthProvider';
 import { AppRoutes } from './AppRoutes';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
+    <>
+    <Toaster />
     <MantineProvider>
       <Notifications position="top-right" />
       <ApolloProviderWrapper>
@@ -20,6 +23,7 @@ function App() {
         </BrowserRouter>
       </ApolloProviderWrapper>
     </MantineProvider>
+    </>
   );
 }
 
