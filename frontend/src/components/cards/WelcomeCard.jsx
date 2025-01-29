@@ -1,13 +1,14 @@
 // src/components/cards/WelcomeCard.jsx
-import { Avatar, Paper, Text } from '@mantine/core';
-import PropTypes from 'prop-types';
+
+import { Avatar, Paper, Text } from "@mantine/core";
+import PropTypes from "prop-types";
 
 export function WelcomeCard({ imageUrl, userName, userGreeting }) {
   return (
     <Paper radius="md" withBorder p="lg" bg="var(--mantine-color-body)">
       <Avatar
         src={imageUrl}
-        alt={userName || 'User profile picture'}
+        alt={userName || "User profile picture"}
         size={120}
         radius={120}
         mx="auto"
@@ -20,16 +21,6 @@ export function WelcomeCard({ imageUrl, userName, userGreeting }) {
       <Text ta="center" c="dimmed" fz="sm">
         {userGreeting}
       </Text>
-      {isAdmin && (
-        <Button
-          fullWidth
-          mt="md"
-          color="blue"
-          onClick={() => navigate('/admin')}
-        >
-          Admin Dashboard
-        </Button>
-      )}
     </Paper>
   );
 }
@@ -37,13 +28,13 @@ export function WelcomeCard({ imageUrl, userName, userGreeting }) {
 WelcomeCard.propTypes = {
   imageUrl: PropTypes.string,
   userName: PropTypes.string,
-  userGreeting: PropTypes.string
+  userGreeting: PropTypes.string,
 };
 
 WelcomeCard.defaultProps = {
   imageUrl: null,
-  userName: '',
-  userGreeting: 'Welcome!'
+  userName: "",
+  userGreeting: "Welcome!",
 };
 
 export default WelcomeCard;
