@@ -24,10 +24,10 @@ const useStyles = createStyles((theme) => ({
     gap: '16px',
   },
   firstColumn: {
-    flex: 0.3, 
+    flex: 0.2, 
   },
   mainColumn: {
-    flex: 0.6, 
+    flex: 0.7, 
   },
   thirdColumn: {
     flex: 0.1,  
