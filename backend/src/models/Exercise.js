@@ -14,6 +14,7 @@ const exerciseSchema = new mongoose.Schema(
     },
     equipment: {
       type: String,
+      required: true
     },
     type: {
       type: mongoose.Schema.Types.ObjectId,

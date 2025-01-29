@@ -6,6 +6,7 @@ const GET_EXERCISE = gql`
       id
       title
       description
+      equipment
       type {
         id
         title
@@ -26,6 +27,7 @@ const GET_EXERCISES = gql`
       id
       title
       description
+      equipment
       type {
         id
         title
@@ -46,6 +48,7 @@ const CREATE_EXERCISE = gql`
       id
       title
       description
+      equipment
       type {
         id
         title
@@ -66,6 +69,7 @@ const UPDATE_EXERCISE = gql`
       id
       title
       description
+      equipment
       type {
         id
         title
@@ -85,7 +89,6 @@ const DELETE_EXERCISE = gql`
     deleteExercise(id: $id)
   }
 `;
-
 export function useExercise(exerciseId) {
   // Query for a single exercise if ID is provided
   const {

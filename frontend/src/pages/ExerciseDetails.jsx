@@ -4,7 +4,7 @@ import { useExercise } from '../hooks/useExercise';
 import { useProgress } from '../hooks/useProgress';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { IconAlertCircle, IconBarbell } from '@tabler/icons-react';
 
 export function ExerciseDetails() {
   const { id } = useParams();
@@ -62,7 +62,17 @@ export function ExerciseDetails() {
     }
   };
 
-  const formatMuscles = (muscles: string[]) => {
+  const formatEquipment = (equipment) => {
+    try {
+      if (!equipment) return 'No equipment needed';
+      return equipment.charAt(0).toUpperCase() + equipment.slice(1).toLowerCase();
+    } catch (error) {
+      console.error('Error formatting equipment:', error);
+      return 'No equipment needed';
+    }
+  };
+
+  const formatMuscles = (muscles) => {
     try {
       if (!Array.isArray(muscles)) return 'Not specified';
       return muscles
@@ -75,7 +85,7 @@ export function ExerciseDetails() {
     }
   };
 
-  const formatDifficulty = (difficulty: string) => {
+  const formatDifficulty = (difficulty) => {
     try {
       const difficultyMap = {
         'BEGINNER': 'Beginner',
@@ -184,6 +194,28 @@ export function ExerciseDetails() {
           <Badge size="lg" variant="light">
             Muscles: {formatMuscles(exercise.muscles)}
           </Badge>
+
+          <Group spacing="xs" align="flex-start">
+            <Card 
+              withBorder 
+              radius="md" 
+              p="sm" 
+              style={{ 
+                backgroundColor: 'var(--mantine-color-gray-0)',
+                width: '100%' 
+              }}
+            >
+            <Stack spacing="xs">
+                <Group spacing="xs">
+                  <IconBarbell size={20} />
+                  <Text size="lg" weight={500}>Required Equipment</Text>
+                </Group>
+                <Text>
+                  {formatEquipment(exercise.equipment)}
+                </Text>
+              </Stack>
+            </Card>
+          </Group>
 
           <Stack spacing="md">
             <Text size="lg" weight={500}>Description</Text>
