@@ -21,23 +21,28 @@ const GET_EXERCISE = gql`
   }
 `;
 
+
 const GET_EXERCISES = gql`
   query GetExercises($filters: ExerciseFilters) {
     exercises(filters: $filters) {
-      id
-      title
-      description
-      equipment
-      type {
+      exercises {
         id
         title
+        description
+        equipment
+        type {
+          id
+          title
+        }
+        difficulty
+        muscles
+        instructions
+        pointsAwarded
+        createdAt
+        updatedAt
       }
-      difficulty
-      muscles
-      instructions
-      pointsAwarded
-      createdAt
-      updatedAt
+      total
+      hasMore
     }
   }
 `;
@@ -89,6 +94,8 @@ const DELETE_EXERCISE = gql`
     deleteExercise(id: $id)
   }
 `;
+
+
 export function useExercise(exerciseId) {
   // Query for a single exercise if ID is provided
   const {

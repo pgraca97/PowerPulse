@@ -27,29 +27,39 @@ export const exerciseResolvers = {
 
     exercises: async (_, { filters = {} }, context) => {
       requireAuth(context);
-      const query = {};
+      const { search, typeId, difficulty, muscle, limit = 10, offset = 0 } = filters;
+     console.log("filters", filters);
 
       try {
-        if (filters.typeId) {
-          validateObjectId(filters.typeId, 'typeId');
-          const typeExists = await ExerciseType.exists({ _id: filters.typeId });
+        let query = {};
+
+        // add search by text if provided
+        if (search) {
+          query.$or = [
+            {title: { $regex: search, $options: 'i' }},
+            {description: { $regex: search, $options: 'i' }},
+          ];
+        }
+        if (typeId) {
+          validateObjectId(typeId, 'typeId');
+          const typeExists = await ExerciseType.exists({ _id: typeId });
           if (!typeExists) {
-            throw new NotFoundError('ExerciseType', filters.typeId);
+            throw new NotFoundError('ExerciseType', typeId);
           }
-          query.type = filters.typeId;
+          query.type = typeId;
         }
 
-        if (filters.difficulty) {
-          if (!DIFFICULTY_LEVELS.includes(filters.difficulty)) {
+        if (difficulty) {
+          if (!DIFFICULTY_LEVELS.includes(difficulty)) {
             throw new ValidationError(
               'Invalid difficulty level',
               { difficulty: `Must be one of: ${DIFFICULTY_LEVELS.join(', ')}` } 
             );
           }
-          query.difficulty = filters.difficulty;
+          query.difficulty = difficulty;
         }
 
-        if (filters.muscle) {
+        if (muscle) {
 
           if (!MUSCLE_GROUPS.includes(filters.muscle)) {
             throw new ValidationError(
@@ -57,12 +67,24 @@ export const exerciseResolvers = {
               { muscle: `Must be one of: ${MUSCLE_GROUPS.join(', ')}` }
             );
           }
-          query.muscles = filters.muscle;
+          query.muscles = muscle;
         }
 
-        return await Exercise.find(query)
-          .populate("type")
-          .sort({ title: 1 });
+        // total count for pagination
+        const total = await Exercise.countDocuments(query);
+
+        // fetch exercises with filters and pagination
+        const exercises = await Exercise.find(query)
+        .populate("type")
+        .sort({ title: 1 })
+        .skip(offset)
+        .limit(limit);
+
+        return {
+          exercises,
+          total,
+          hasMore: offset + exercises.length < total
+        }
       } catch (error) {
         return handleMongoError(error);
       }

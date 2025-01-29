@@ -47,8 +47,17 @@ ${MUSCLE_GROUPS.join('\n    ')}
   }
 
   input ExerciseFilters {
+  search: String
     typeId: ID
     difficulty: Difficulty
     muscle: Muscle
+    limit: Int
+    offset: Int
+  }
+
+  type ExerciseResponse {
+    exercises: [Exercise!]!
+    total: Int!
+    hasMore: Boolean!
   }
 `;

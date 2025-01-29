@@ -1,7 +1,8 @@
-import React from 'react';
+// src/components/cards/WelcomeCard.jsx
 import { Avatar, Paper, Text } from '@mantine/core';
+import PropTypes from 'prop-types';
 
-const UserCard = ({ imageUrl, userName, userGreeting }) => {
+export function WelcomeCard({ imageUrl, userName, userGreeting }) {
   return (
     <Paper radius="md" withBorder p="lg" bg="var(--mantine-color-body)">
       <Avatar
@@ -21,6 +22,18 @@ const UserCard = ({ imageUrl, userName, userGreeting }) => {
       </Text>
     </Paper>
   );
+}
+
+WelcomeCard.propTypes = {
+  imageUrl: PropTypes.string,
+  userName: PropTypes.string,
+  userGreeting: PropTypes.string
 };
 
-export default UserCard;
+WelcomeCard.defaultProps = {
+  imageUrl: null,
+  userName: '',
+  userGreeting: 'Welcome!'
+};
+
+export default WelcomeCard;
