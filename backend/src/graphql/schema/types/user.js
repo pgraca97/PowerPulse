@@ -1,4 +1,6 @@
 // backend/src/graphql/schema/types/user.js
+import { DIFFICULTY_LEVELS } from "../../../constants/exercise.js";
+
 export const userTypes = `
   type User {
     id: ID!
@@ -53,9 +55,7 @@ export const userTypes = `
   }
 
   enum FitnessLevel {
-    BEGINNER
-    INTERMEDIATE
-    ADVANCED
+ ${DIFFICULTY_LEVELS.join('\n    ')}
   }
 
   type UserProgress {
@@ -64,5 +64,9 @@ export const userTypes = `
   points: Int!
   }
 
-
+  type ExerciseType {
+    id: ID!
+    title: String!
+    description: String
+  }
 `;

@@ -1,4 +1,6 @@
 // src/graphql/schema/types/exercise.js
+import { DIFFICULTY_LEVELS, MUSCLE_GROUPS } from "../../../constants/exercise.js";
+
 export const exerciseTypes = `
   type Exercise {
     id: ID!
@@ -15,23 +17,11 @@ export const exerciseTypes = `
   }
 
   enum Difficulty {
-    BEGINNER
-    INTERMEDIATE
-    ADVANCED
+ ${DIFFICULTY_LEVELS.join('\n    ')}
   }
 
   enum Muscle {
-    CHEST
-    BACK
-    LOWER_BACK
-    HIPS
-    GLUTES
-    SHOULDERS
-    BICEPS
-    TRICEPS
-    LEGS
-    CORE
-    FULL_BODY
+${MUSCLE_GROUPS.join('\n    ')}
   }
 
   input CreateExerciseInput {
