@@ -43,22 +43,37 @@ await mongoose.connect(process.env.MONGODB_URI);
 console.log("Connected to MongoDB");
 
 try {
-  const { url } = await startStandaloneServer(server, {
-    context: async ({ req }) => {
-      const token = req.headers.authorization?.replace("Bearer ", "");
-      if (!token) {
-        return { user: null };
-      }
-      try {
-        const decodedToken = await getAuth().verifyIdToken(token);
-        return { user: decodedToken };
-      } catch (error) {
-        console.error("Token verification error:", error);
-        return { user: null };
-      }
-    },
-    listen: { port: process.env.PORT || 4000 },
-  });
+// backend/src/index.js
+// Adicionar após a inicialização do servidor Apollo, dentro do startStandaloneServer
+
+const { url } = await startStandaloneServer(server, {
+  context: async ({ req }) => {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    
+    // Development bypass
+    if (process.env.NODE_ENV === 'development' && token?.startsWith('test-')) {
+      return {
+        user: {
+          uid: token.replace('test-', ''),
+          email: `${token.replace('test-', '')}@admin.com`
+        }
+      };
+    }
+
+    if (!token) {
+      return { user: null };
+    }
+
+    try {
+      const decodedToken = await getAuth().verifyIdToken(token);
+      return { user: decodedToken };
+    } catch (error) {
+      console.error("Token verification error:", error);
+      return { user: null };
+    }
+  },
+  listen: { port: process.env.PORT || 4000 },
+});
   console.log(`🚀 Server ready at ${url}`);
 } catch (error) {
   console.error("Failed to start server:", error);

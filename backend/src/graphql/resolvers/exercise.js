@@ -1,43 +1,284 @@
 // src/graphql/resolvers/exercise.js
 import { Exercise } from "../../models/Exercise.js";
-import { User } from "../../models/User.js";
+import { ExerciseType } from "../../models/ExerciseType.js";
+import { requireAdmin, requireAuth } from "../../middleware/auth.js";
+import { 
+  ValidationError, 
+  NotFoundError, 
+  handleMongoError,
+  validateObjectId,
+  validateRequiredFields 
+} from "../../middleware/validation.js";
+
 
 export const exerciseResolvers = {
   Query: {
-    exercise: async (_, { id }) => {
-      return await Exercise.findById(id).populate("type");
+    exercise: async (_, { id }, context) => {
+      requireAuth(context);
+      validateObjectId(id, 'exercise');
+
+      const exercise = await Exercise.findById(id).populate("type");
+      if (!exercise) {
+        throw new NotFoundError('Exercise', id);
+      }
+      return exercise;
     },
-    exercises: async (_, { filters = {} }) => {
+
+    exercises: async (_, { filters = {} }, context) => {
+      requireAuth(context);
       const query = {};
 
-      if (filters.typeId) query.type = filters.typeId;
-      if (filters.difficulty) query.difficulty = filters.difficulty;
-      if (filters.muscle) query.muscles = filters.muscle;
+      try {
+        if (filters.typeId) {
+          validateObjectId(filters.typeId, 'typeId');
+          const typeExists = await ExerciseType.exists({ _id: filters.typeId });
+          if (!typeExists) {
+            throw new NotFoundError('ExerciseType', filters.typeId);
+          }
+          query.type = filters.typeId;
+        }
 
-      return await Exercise.find(query).populate("type");
+        if (filters.difficulty) {
+          if (!['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].includes(filters.difficulty)) {
+            throw new ValidationError(
+              'Invalid difficulty level',
+              { difficulty: 'Must be BEGINNER, INTERMEDIATE, or ADVANCED' }
+            );
+          }
+          query.difficulty = filters.difficulty;
+        }
+
+        if (filters.muscle) {
+          const validMuscles = [
+            'CHEST', 'BACK', 'SHOULDERS', 'BICEPS', 
+            'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
+          ];
+          if (!validMuscles.includes(filters.muscle)) {
+            throw new ValidationError(
+              'Invalid muscle group',
+              { muscle: `Must be one of: ${validMuscles.join(', ')}` }
+            );
+          }
+          query.muscles = filters.muscle;
+        }
+
+        return await Exercise.find(query)
+          .populate("type")
+          .sort({ title: 1 });
+      } catch (error) {
+        return handleMongoError(error);
+      }
     },
   },
 
   Mutation: {
-    createExercise: async (_, { input }) => {
-      const exercise = await Exercise.create(input);
-      return await exercise.populate("type");
+    createExercise: async (_, { input }, context) => {
+      requireAdmin(context);
+
+      try {
+        // Validate required fields
+        validateRequiredFields(input, [
+          'title',
+          'description',
+          'typeId',
+          'difficulty',
+          'muscles',
+          'instructions'
+        ]);
+
+        // Validate title length
+        if (input.title.length < 3) {
+          throw new ValidationError('Title must be at least 3 characters long');
+        }
+
+        // Validate unique titlre
+        const existingExercise = await Exercise.findOne({ 
+          title: input.title.trim() 
+        });
+        
+        if (existingExercise) {
+          throw new ValidationError(
+            `Exercise with title "${input.title}" already exists`,
+            { title: 'Must be unique' }
+          );
+        }
+
+        // Validate typeId
+        validateObjectId(input.typeId, 'typeId');
+        const exerciseType = await ExerciseType.findById(input.typeId);
+        if (!exerciseType) {
+          throw new NotFoundError('ExerciseType', input.typeId);
+        }
+
+        // Validate difficulty
+        if (!['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].includes(input.difficulty)) {
+          throw new ValidationError(
+            'Invalid difficulty level',
+            { difficulty: 'Must be BEGINNER, INTERMEDIATE, or ADVANCED' }
+          );
+        }
+
+        // Validate muscles
+        const validMuscles = [
+          'CHEST', 'BACK', 'SHOULDERS', 'BICEPS', 
+          'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
+        ];
+        
+        input.muscles.forEach(muscle => {
+          if (!validMuscles.includes(muscle)) {
+            throw new ValidationError(
+              'Invalid muscle group',
+              { muscles: `Must be one of: ${validMuscles.join(', ')}` }
+            );
+          }
+        });
+        // Validate instructions
+        if (!Array.isArray(input.instructions) || input.instructions.length === 0) {
+          throw new ValidationError(
+            'Instructions must be a non-empty array',
+            { instructions: 'At least one instruction is required' }
+          );
+        }
+
+        const exerciseInput = {
+          ...input,
+          title: input.title.trim(),
+          type: input.typeId,
+          pointsAwarded: input.pointsAwarded || 10 // Default points if not provided
+        };
+        
+        const exercise = await Exercise.create(exerciseInput);
+        return await exercise.populate("type");
+      } catch (error) {
+        return handleMongoError(error);
+      }
     },
-    updateExercise: async (_, { id, input }) => {
-      const exercise = await Exercise.findByIdAndUpdate(id, input, {
-        new: true,
-      });
-      return await exercise.populate("type");
+
+    updateExercise: async (_, { id, input }, context) => {
+      requireAdmin(context);
+      validateObjectId(id, 'exercise');
+
+      try {
+        const exercise = await Exercise.findById(id);
+        if (!exercise) {
+          throw new NotFoundError('Exercise', id);
+        }
+
+        const updates = { ...input };
+
+        // validate title if provided
+        if (input.title) {
+          if (input.title.length < 3) {
+            throw new ValidationError('Title must be at least 3 characters long');
+          }
+
+          const existingExercise = await Exercise.findOne({
+            title: input.title.trim(),
+            _id: { $ne: id }
+          });
+
+          if (existingExercise) {
+            throw new ValidationError(
+              `Exercise with title "${input.title}" already exists`,
+              { title: 'Must be unique' }
+            );
+          }
+
+          updates.title = input.title.trim();
+        }
+
+        // validate typeId if provided
+        if (input.typeId) {
+          validateObjectId(input.typeId, 'typeId');
+          const typeExists = await ExerciseType.exists({ _id: input.typeId });
+          if (!typeExists) {
+            throw new NotFoundError('ExerciseType', input.typeId);
+          }
+          updates.type = input.typeId;
+        }
+
+        // validate difficulty if provided
+        if (input.difficulty) {
+          if (!['BEGINNER', 'INTERMEDIATE', 'ADVANCED'].includes(input.difficulty)) {
+            throw new ValidationError(
+              'Invalid difficulty level',
+              { difficulty: 'Must be BEGINNER, INTERMEDIATE, or ADVANCED' }
+            );
+          }
+        }
+
+        // validate muscles if provided
+        if (input.muscles) {
+          const validMuscles = [
+            'CHEST', 'BACK', 'SHOULDERS', 'BICEPS', 
+            'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
+          ];
+          
+          input.muscles.forEach(muscle => {
+            if (!validMuscles.includes(muscle)) {
+              throw new ValidationError(
+                'Invalid muscle group',
+                { muscles: `Must be one of: ${validMuscles.join(', ')}` }
+              );
+            }
+          });
+        }
+
+        // validate instructions if provided
+        if (input.instructions) {
+          if (!Array.isArray(input.instructions) || input.instructions.length === 0) {
+            throw new ValidationError(
+              'Instructions must be a non-empty array',
+              { instructions: 'At least one instruction is required' }
+            );
+          }
+        }
+
+        const updatedExercise = await Exercise.findByIdAndUpdate(
+          id,
+          updates,
+          { new: true, runValidators: true }
+        );
+
+        return await updatedExercise.populate("type");
+      } catch (error) {
+        return handleMongoError(error);
+      }
     },
-    deleteExercise: async (_, { id }) => {
-      await Exercise.findByIdAndDelete(id);
-      return true;
+
+    deleteExercise: async (_, { id }, context) => {
+      requireAdmin(context);
+      validateObjectId(id, 'exercise');
+      
+      try {
+        const exercise = await Exercise.findById(id);
+        if (!exercise) {
+          throw new NotFoundError('Exercise', id);
+        }
+        
+        // Additional validations could be added here in the future
+        // For example, checking if the exercise is associated with any workout plans etc
+        
+        await Exercise.findByIdAndDelete(id);
+        return true;
+      } catch (error) {
+        return handleMongoError(error);
+      }
     },
   },
 
   Exercise: {
     type: async (exercise) => {
-      return await ExerciseType.findById(exercise.type);
+      try {
+        const type = await ExerciseType.findById(exercise.type);
+        if (!type) {
+          throw new NotFoundError('ExerciseType', exercise.type);
+        }
+        return type;
+      } catch (error) {
+        console.error('Error resolving exercise type:', error);
+        throw new Error('Failed to resolve exercise type');
+      }
     },
   },
 };

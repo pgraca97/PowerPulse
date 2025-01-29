@@ -139,6 +139,7 @@ export const userResolvers = {
         throw new Error("Failed to delete user");
       }
     },
+    
     completeExercise: async (_, { exerciseId }, { user }) => {
       if (!user) throw new Error("Not authenticated");
 

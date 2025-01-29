@@ -5,6 +5,7 @@ export const userTypes = `
     firebaseUid: String!
     email: String!
     name: String
+    isAdmin: Boolean!
     picture: Media
     profile: Profile
     progress: [UserProgress!]!

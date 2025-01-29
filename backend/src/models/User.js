@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
     name: String,
+    isAdmin: {
+      type: Boolean,
+      default: false
+    },
     picture: {
       url: String,
       publicId: String,
