@@ -46,19 +46,16 @@ export const userResolvers = {
   UserProgress: {
     exerciseType: async (progress) => {
       try {
-        console.log('UserProgress resolver - progress object:', progress);
-        console.log('UserProgress resolver - exerciseTypeId:', progress.exerciseTypeId);
-        
+
         if (!progress.exerciseTypeId) {
-          console.error('Exercise type ID is missing from progress');
+  
           throw new Error('Exercise type ID is missing from progress');
         }
         
         const exerciseType = await ExerciseType.findById(progress.exerciseTypeId);
-        console.log('UserProgress resolver - found exerciseType:', exerciseType);
+
         
         if (!exerciseType) {
-          console.error(`ExerciseType not found for id: ${progress.exerciseTypeId}`);
           throw new Error(`ExerciseType not found for id: ${progress.exerciseTypeId}`);
         }
         return exerciseType;
@@ -193,8 +190,6 @@ export const userResolvers = {
         
         // Fetch exercise with type info
         const exercise = await Exercise.findById(exerciseId).populate('type');
-        console.log('CompleteExercise - found exercise:', exercise);
-        
         if (!exercise) {
           throw new NotFoundError('Exercise', exerciseId);
         }
@@ -209,9 +204,6 @@ export const userResolvers = {
           p => p.exerciseTypeId.toString() === exercise.type._id.toString()
         );
 
-        console.log('CompleteExercise - progressIndex:', progressIndex);
-        console.log('CompleteExercise - exercise.type._id:', exercise.type._id);
-
         if (progressIndex === -1) {
           // Initialize new progress
           dbUser.progress.push({
@@ -225,25 +217,24 @@ export const userResolvers = {
           dbUser.progress[progressIndex].points += exercise.pointsAwarded;
         }
 
-        // Calculate new level (level up every 100 points)
+        // Calculate new level and reset points
         let currentProgress = dbUser.progress[progressIndex];
-        console.log('CompleteExercise - before level calculation - currentProgress:', currentProgress);
+        const oldLevel = currentProgress.level;
+        const newLevel = Math.floor(currentProgress.points / 100);
         
-        currentProgress.level = Math.floor(currentProgress.points / 100);
+        if (newLevel > oldLevel) {
+          // If leveled up, keep only the excess points
+          currentProgress.level = newLevel;
+          currentProgress.points = currentProgress.points % 100;
+          
+          // Here we could trigger a level up event
+          // TODO: Implement subscription for level up
+        }
         
         await dbUser.save();
-        console.log('CompleteExercise - after save - currentProgress:', currentProgress);
-
-        // Verificar se o exerciseType existe antes de retornar
-        const exerciseType = await ExerciseType.findById(currentProgress.exerciseTypeId);
-        console.log('CompleteExercise - found exerciseType:', exerciseType);
-        
-        if (!exerciseType) {
-          throw new NotFoundError('ExerciseType', currentProgress.exerciseTypeId);
-        }
 
         return {
-          exerciseTypeId: exerciseType.id,
+          exerciseTypeId: exercise.type._id,
           level: currentProgress.level,
           points: currentProgress.points
         };
