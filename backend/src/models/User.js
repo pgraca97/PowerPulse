@@ -1,3 +1,4 @@
+// backend\src\models\User.js
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
@@ -35,23 +36,23 @@ const userSchema = new mongoose.Schema(
         enum: ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
       },
     },
-    progress: [
-      {
-        exerciseTypeId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "ExerciseType",
-          required: true,
-        },
-        level: {
-          type: Number,
-          default: 0,
-        },
-        points: {
-          type: Number,
-          default: 0,
-        },
+    progress: [{
+      exerciseTypeId: {  // Mudamos para exerciseTypeId para clareza
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ExerciseType',
+        required: true
       },
-    ],
+      level: {
+        type: Number,
+        default: 0,
+        min: 0
+      },
+      points: {
+        type: Number,
+        default: 0,
+        min: 0
+      }
+    }],
   },
   {
     timestamps: true,

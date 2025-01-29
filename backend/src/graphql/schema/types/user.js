@@ -64,10 +64,5 @@ export const userTypes = `
   points: Int!
   }
 
-  type ExerciseType {
-  id: ID!
-  title: String!
-  }
-
 
 `;

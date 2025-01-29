@@ -1,6 +1,6 @@
 // src/middleware/auth.js
 import { GraphQLError } from 'graphql';
-import { User } from '../models/User';
+import { User } from '../models/User.js';
 
 export class AuthenticationError extends GraphQLError {
   constructor(message = 'Not authenticated') {

@@ -50,8 +50,8 @@ export const exerciseResolvers = {
 
         if (filters.muscle) {
           const validMuscles = [
-            'CHEST', 'BACK', 'SHOULDERS', 'BICEPS', 
-            'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
+            'CHEST', 'BACK', 'LOWER_BACK', 'SHOULDERS', 'HIPS', 'GLUTES',
+            'BICEPS', 'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
           ];
           if (!validMuscles.includes(filters.muscle)) {
             throw new ValidationError(
@@ -120,8 +120,8 @@ export const exerciseResolvers = {
 
         // Validate muscles
         const validMuscles = [
-          'CHEST', 'BACK', 'SHOULDERS', 'BICEPS', 
-          'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
+          'CHEST', 'BACK', 'LOWER_BACK', 'SHOULDERS', 'HIPS', 'GLUTES',
+          'BICEPS', 'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
         ];
         
         input.muscles.forEach(muscle => {
@@ -210,8 +210,8 @@ export const exerciseResolvers = {
         // validate muscles if provided
         if (input.muscles) {
           const validMuscles = [
-            'CHEST', 'BACK', 'SHOULDERS', 'BICEPS', 
-            'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
+            'CHEST', 'BACK', 'LOWER_BACK', 'SHOULDERS', 'HIPS', 'GLUTES',
+            'BICEPS', 'TRICEPS', 'LEGS', 'CORE', 'FULL_BODY'
           ];
           
           input.muscles.forEach(muscle => {

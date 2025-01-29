@@ -54,7 +54,8 @@ const { url } = await startStandaloneServer(server, {
     if (process.env.NODE_ENV === 'development' && token?.startsWith('test-')) {
       return {
         user: {
-          uid: token.replace('test-', ''),
+          //uid: token.replace('test-', ''),
+          uid: 'EJqw2DfzgTPXoWRZs2kvWr8N2wG3',
           email: `${token.replace('test-', '')}@admin.com`
         }
       };

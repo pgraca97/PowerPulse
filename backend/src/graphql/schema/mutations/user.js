@@ -5,7 +5,7 @@ export const userMutations = `
     updateProfile(input: UpdateProfileInput!): User!
     getSignedUploadUrl: SignedUploadResponse!
     deleteUser: Boolean!
-    completeExercise(userId: ID!, exerciseId: ID!): UserProgress
+    completeExercise(exerciseId: ID!): UserProgress
   }
 
   type SignedUploadResponse {

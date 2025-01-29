@@ -34,7 +34,10 @@ const exerciseSchema = new mongoose.Schema(
         enum: [
           "CHEST",
           "BACK",
+          "LOWER_BACK",
           "SHOULDERS",
+          "HIPS",
+          "GLUTES",
           "BICEPS",
           "TRICEPS",
           "LEGS",

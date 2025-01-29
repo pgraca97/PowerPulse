@@ -23,6 +23,9 @@ export const exerciseTypes = `
   enum Muscle {
     CHEST
     BACK
+    LOWER_BACK
+    HIPS
+    GLUTES
     SHOULDERS
     BICEPS
     TRICEPS
