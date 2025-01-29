@@ -47,6 +47,7 @@ const GET_EXERCISES = gql`
   }
 `;
 
+
 const CREATE_EXERCISE = gql`
   mutation CreateExercise($input: CreateExerciseInput!) {
     createExercise(input: $input) {
@@ -112,20 +113,21 @@ export function useExercise(exerciseId) {
     }
   });
 
-  // Query for all exercises with optional filters
+  // Query for all exercises with optional filters and pagination
   const {
     data: exercisesData,
     loading: exercisesLoading,
     error: exercisesError,
     refetch: refetchExercises
   } = useQuery(GET_EXERCISES, {
+    variables: { filters: {}, limit, offset }, 
     fetchPolicy: 'network-only',
     onError: (error) => {
       console.error('Exercises query error:', error);
     }
   });
 
-  // Mutations
+  // Mutations 
   const [createExerciseMutation, { loading: createLoading }] = useMutation(CREATE_EXERCISE);
   const [updateExerciseMutation, { loading: updateLoading }] = useMutation(UPDATE_EXERCISE);
   const [deleteExerciseMutation, { loading: deleteLoading }] = useMutation(DELETE_EXERCISE);
@@ -137,10 +139,11 @@ export function useExercise(exerciseId) {
           input: exerciseData
         }
       });
+      console.log("Resposta da API:", data);
       await refetchExercises();
       return data.createExercise;
     } catch (error) {
-      console.error('Error in createExercise:', error);
+      console.error("Erro ao criar exercício:", error);
       throw error;
     }
   };
@@ -175,9 +178,9 @@ export function useExercise(exerciseId) {
     }
   };
 
-  const getExercises = async (filters = {}) => {
+  const getExercises = async (filters = {}, pageLimit = 10, pageOffset = 0) => {
     try {
-      const { data } = await refetchExercises({ filters });
+      const { data } = await refetchExercises({ filters, limit: pageLimit, offset: pageOffset });
       return data.exercises;
     } catch (error) {
       console.error('Error in getExercises:', error);
@@ -187,7 +190,8 @@ export function useExercise(exerciseId) {
 
   return {
     exercise: exerciseData?.exercise,
-    exercises: exercisesData?.exercises,
+    exercises: exercisesData?.exercises?.exercises, 
+    totalExercises: exercisesData?.exercises?.totalCount || 0, 
     loading: exerciseLoading || exercisesLoading || createLoading || updateLoading || deleteLoading,
     error: exerciseError || exercisesError,
     createExercise,

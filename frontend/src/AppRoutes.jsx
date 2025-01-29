@@ -6,6 +6,7 @@ import { Dashboard } from './pages/Dashboard';
 import { ProfileEdit } from './pages/ProfileEdit';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ExerciseDetails } from './pages/ExerciseDetails';
+import AdminDashboard from './pages/AdminDashboard';
 
 export function AppRoutes() {
   return (
@@ -23,6 +24,12 @@ export function AppRoutes() {
         <Route path="*" element={<Navigate to="/" replace />} />
 
         <Route path="/exercise/:id" element={<ExerciseDetails />} />
+
+        <Route 
+        path="/admin" 
+        element={<ProtectedRoute component={AdminDashboard} requireAdmin />} 
+        />
+        
       </Route>
     </Routes>
   );

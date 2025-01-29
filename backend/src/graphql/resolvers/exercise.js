@@ -25,7 +25,7 @@ export const exerciseResolvers = {
       return exercise;
     },
 
-    exercises: async (_, { filters = {} }, context) => {
+    exercises: async (_, { filters = {}, limit = 10, offset = 0 }, context) => {
       requireAuth(context);
       const { search, typeId, difficulty, muscle, limit = 10, offset = 0 } = filters;
      console.log("filters", filters);
@@ -61,6 +61,7 @@ export const exerciseResolvers = {
 
         if (muscle) {
 
+
           if (!MUSCLE_GROUPS.includes(filters.muscle)) {
             throw new ValidationError(
               'Invalid muscle group',
@@ -89,6 +90,7 @@ export const exerciseResolvers = {
         return handleMongoError(error);
       }
     },
+    
   },
 
   Mutation: {

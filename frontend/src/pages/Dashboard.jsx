@@ -18,7 +18,7 @@ export function Dashboard() {
   const [filters, setFilters] = useState({
     typeId: null,
     difficulty: null,
-    muscle: null
+    muscle: null,
   });
   
   const { getExerciseTypes } = useExerciseType();
@@ -32,25 +32,25 @@ export function Dashboard() {
     const difficultySet = new Set();
     const muscleSet = new Set();
 
-    exercises.forEach(exercise => {
+    exercises.forEach((exercise) => {
       if (exercise.difficulty) {
         difficultySet.add(exercise.difficulty);
       }
       if (exercise.muscles) {
-        exercise.muscles.forEach(muscle => muscleSet.add(muscle));
+        exercise.muscles.forEach((muscle) => muscleSet.add(muscle));
       }
     });
 
     return {
       difficulties: Array.from(difficultySet),
-      muscles: Array.from(muscleSet)
+      muscles: Array.from(muscleSet),
     };
   }, [exercises]);
 
   const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [filterType]: value
+      [filterType]: value,
     }));
   };
 

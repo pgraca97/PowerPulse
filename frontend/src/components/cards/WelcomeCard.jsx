@@ -20,6 +20,16 @@ export function WelcomeCard({ imageUrl, userName, userGreeting }) {
       <Text ta="center" c="dimmed" fz="sm">
         {userGreeting}
       </Text>
+      {isAdmin && (
+        <Button
+          fullWidth
+          mt="md"
+          color="blue"
+          onClick={() => navigate('/admin')}
+        >
+          Admin Dashboard
+        </Button>
+      )}
     </Paper>
   );
 }
