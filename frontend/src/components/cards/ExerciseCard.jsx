@@ -181,7 +181,7 @@ export function ExerciseCard({ searchTerm = "", filters = {} }) {
       )}
 
       {/* Total count */}
-      <Text align="center" size="sm" color="dimmed" mt="md">
+      <Text align="center" size="sm" c="dimmed" mt="md">
         Showing {exercises.length} of {total} exercises
       </Text>
     </>

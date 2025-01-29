@@ -1,8 +1,20 @@
+// src/pages/ExerciseDetails.jsx
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Group, Badge, Text, Button, Stack, Loader, Container, Alert } from '@mantine/core';
-import { useExercise } from '../hooks/useExercise';
+import { useEffect } from 'react';
+import { 
+  Card, 
+  Group, 
+  Badge, 
+  Text, 
+  Button, 
+  Stack, 
+  Loader, 
+  Container, 
+  Alert 
+} from '@mantine/core';
+import { useExerciseDetails } from '../hooks/useExerciseDetails';
 import { useProgress } from '../hooks/useProgress';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { IconAlertCircle, IconBarbell } from '@tabler/icons-react';
 
@@ -10,94 +22,66 @@ export function ExerciseDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { exercise, loading, error, refetchExercise } = useExercise(id);
+  const { exercise, loading, error, refetch } = useExerciseDetails(id);
   const { completeExercise } = useProgress();
 
-  // Validate ID parameter
+
   useEffect(() => {
     if (!id) {
-      navigate('/exercises', { replace: true });
       toast.error('Invalid exercise ID');
+      navigate('/dashboard', { replace: true });
     }
   }, [id, navigate]);
 
-  // Handle network errors with retry
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        refetchExercise();
-      }, 5000);
-      return () => clearTimeout(timer);
+
+  const formatters = {
+    equipment: (equipment) => {
+      if (!equipment) return 'No equipment needed';
+      return equipment.charAt(0).toUpperCase() + equipment.slice(1).toLowerCase();
+    },
+
+    muscles: (muscles) => {
+      if (!Array.isArray(muscles)) return 'Not specified';
+      return muscles
+        .map(muscle => muscle.replace('_', ' ').toLowerCase())
+        .map(muscle => muscle.charAt(0).toUpperCase() + muscle.slice(1))
+        .join(', ') || 'Not specified';
+    },
+
+    difficulty: (difficulty) => {
+      const map = {
+        'BEGINNER': 'Beginner',
+        'INTERMEDIATE': 'Intermediate',
+        'ADVANCED': 'Advanced'
+      };
+      return map[difficulty] || 'Not specified';
     }
-  }, [error, refetchExercise]);
+  };
+
 
   const handleStartExercise = async () => {
-    if (isSubmitting) return; // Prevent double submission
-    
+    if (isSubmitting || !id || !exercise) return;
+
     try {
       setIsSubmitting(true);
-      
-      if (!id || !exercise) {
-        throw new Error('Exercise data is not available');
-      }
-
       await completeExercise(id);
+      
       toast.success('Exercise completed successfully!', {
         duration: 3000,
         position: 'top-right',
       });
-    } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Failed to complete exercise';
       
-      toast.error(errorMessage, {
+    } catch (error) {
+      toast.error(error.message || 'Failed to complete exercise', {
         duration: 4000,
         position: 'top-right',
       });
-      
       console.error('Exercise completion error:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const formatEquipment = (equipment) => {
-    try {
-      if (!equipment) return 'No equipment needed';
-      return equipment.charAt(0).toUpperCase() + equipment.slice(1).toLowerCase();
-    } catch (error) {
-      console.error('Error formatting equipment:', error);
-      return 'No equipment needed';
-    }
-  };
-
-  const formatMuscles = (muscles) => {
-    try {
-      if (!Array.isArray(muscles)) return 'Not specified';
-      return muscles
-        .filter(muscle => typeof muscle === 'string')
-        .map(muscle => muscle.charAt(0).toUpperCase() + muscle.slice(1).toLowerCase())
-        .join(', ') || 'Not specified';
-    } catch (error) {
-      console.error('Error formatting muscles:', error);
-      return 'Not specified';
-    }
-  };
-
-  const formatDifficulty = (difficulty) => {
-    try {
-      const difficultyMap = {
-        'BEGINNER': 'Beginner',
-        'INTERMEDIATE': 'Intermediate',
-        'ADVANCED': 'Advanced'
-      };
-      return difficultyMap[difficulty] || 'Not specified';
-    } catch (error) {
-      console.error('Error formatting difficulty:', error);
-      return 'Not specified';
-    }
-  };
 
   if (loading) {
     return (
@@ -110,6 +94,7 @@ export function ExerciseDetails() {
     );
   }
 
+ 
   if (error) {
     return (
       <Container size="md" py="xl">
@@ -121,23 +106,20 @@ export function ExerciseDetails() {
         >
           <Stack spacing="md">
             <Text>{error.message}</Text>
-            <Button 
-              variant="white" 
-              onClick={() => refetchExercise()}
-            >
-              Try Again
-            </Button>
-            <Button 
-              variant="subtle" 
-              onClick={() => navigate(-1)}
-            >
-              Go Back
-            </Button>
+            <Group>
+              <Button variant="white" onClick={refetch}>
+                Try Again
+              </Button>
+              <Button variant="subtle" onClick={() => navigate('/dashboard')}>
+                Return to Dashboard
+              </Button>
+            </Group>
           </Stack>
         </Alert>
       </Container>
     );
   }
+
 
   if (!exercise) {
     return (
@@ -149,12 +131,12 @@ export function ExerciseDetails() {
           variant="filled"
         >
           <Stack spacing="md">
-            <Text>The exercise you&apos;re looking for doesn&apos;t exist or has been removed.</Text>
+            <Text>This exercise doesn&apos;t exist or has been removed.</Text>
             <Button 
               variant="white" 
-              onClick={() => navigate('/exercises')}
+              onClick={() => navigate('/dashboard')}
             >
-              Return to Exercises
+              Return to Dashboard
             </Button>
           </Stack>
         </Alert>
@@ -162,69 +144,77 @@ export function ExerciseDetails() {
     );
   }
 
+ 
   return (
     <Container size="md" py="xl">
       <Card withBorder radius="md" p="xl">
         <Stack spacing="lg">
+
           <Group position="apart">
             <Text size="xl" weight={700}>
-              {exercise.title || 'Untitled Exercise'}
+              {exercise.title}
             </Text>
             <Button 
               variant="subtle" 
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/dashboard')}
               disabled={isSubmitting}
             >
-              Back to Exercises
+              Back to Dashboard
             </Button>
           </Group>
 
+    
           <Group spacing="xs">
             <Badge size="lg" variant="filled" color="blue">
               {exercise.type?.title || 'No Type'}
             </Badge>
             <Badge size="lg" variant="outline">
-              Level: {formatDifficulty(exercise.difficulty)}
+              Level: {formatters.difficulty(exercise.difficulty)}
             </Badge>
             <Badge size="lg" variant="outline">
               Points: {exercise.pointsAwarded || 0}
             </Badge>
           </Group>
 
+ 
           <Badge size="lg" variant="light">
-            Muscles: {formatMuscles(exercise.muscles)}
+            Muscles: {formatters.muscles(exercise.muscles)}
           </Badge>
 
-          <Group spacing="xs" align="flex-start">
-            <Card 
-              withBorder 
-              radius="md" 
-              p="sm" 
-              style={{ 
-                backgroundColor: 'var(--mantine-color-gray-0)',
-                width: '100%' 
-              }}
-            >
+ 
+          <Card 
+            withBorder 
+            radius="md" 
+            p="sm" 
+            style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}
+          >
             <Stack spacing="xs">
-                <Group spacing="xs">
-                  <IconBarbell size={20} />
-                  <Text size="lg" weight={500}>Required Equipment</Text>
-                </Group>
-                <Text>
-                  {formatEquipment(exercise.equipment)}
-                </Text>
-              </Stack>
-            </Card>
-          </Group>
+              <Group spacing="xs">
+                <IconBarbell size={20} />
+                <Text size="lg" weight={500}>Required Equipment</Text>
+              </Group>
+              <Text>{formatters.equipment(exercise.equipment)}</Text>
+            </Stack>
+          </Card>
 
+     
           <Stack spacing="md">
             <Text size="lg" weight={500}>Description</Text>
             <Text>{exercise.description || 'No description available'}</Text>
 
             <Text size="lg" weight={500}>Instructions</Text>
-            <Text>{exercise.instructions || 'No instructions available'}</Text>
+            {Array.isArray(exercise.instructions) ? (
+              <Stack spacing="xs">
+                {exercise.instructions.map((instruction, index) => (
+                  <Text key={index}>{index + 1}. {instruction}</Text>
+                ))}
+              </Stack>
+            ) : (
+              <Text>{exercise.instructions || 'No instructions available'}</Text>
+            )}
           </Stack>
 
+ 
           <Button 
             size="lg"
             fullWidth

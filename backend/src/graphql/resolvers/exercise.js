@@ -25,7 +25,7 @@ export const exerciseResolvers = {
       return exercise;
     },
 
-    exercises: async (_, { filters = {}, limit = 10, offset = 0 }, context) => {
+    exercises: async (_, { filters = {} }, context) => {
       requireAuth(context);
       const { search, typeId, difficulty, muscle, limit = 10, offset = 0 } = filters;
      console.log("filters", filters);
@@ -35,8 +35,9 @@ export const exerciseResolvers = {
 
         // add search by text if provided
         if (search) {
+          const searchRegex = new RegExp(`^${search}`, 'i');
           query.$or = [
-            {title: { $regex: search, $options: 'i' }},
+            { title: searchRegex },
             {description: { $regex: search, $options: 'i' }},
           ];
         }
