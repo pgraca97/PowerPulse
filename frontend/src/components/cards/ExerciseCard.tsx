@@ -131,8 +131,12 @@ export function ExerciseCard({ searchTerm = '', filters = {} }: ExerciseCardProp
       {filteredExercises.map((exercise) => (
         <Grid.Col span={6} key={exercise.id}>
           <Card withBorder radius="md" p="md" className={classes.card}   onClick={() => handleCardClick(exercise.id)} style={{ 
-              cursor: 'pointer',
-              opacity: processingExercise === exercise.id ? 0.7 : 1 
+               cursor: 'pointer',
+               opacity: processingExercise === exercise.id ? 0.7 : 1,
+               height: '280px',
+               display: 'flex',
+               flexDirection: 'column',
+               justifyContent: 'space-between'
             }}>
             <Card.Section className={classes.section} mt="md">
               <Group justify="apart">
@@ -144,7 +148,11 @@ export function ExerciseCard({ searchTerm = '', filters = {} }: ExerciseCardProp
                 </Badge>
               </Group>
               
-              <Text fz="sm" mt="xs" color="dimmed">
+              <Text fz="sm" mt="xs" color="dimmed"  lineClamp={3} 
+                style={{ 
+                  minHeight: '3.6em', 
+                  overflow: 'hidden'
+                }}>
                 {exercise.description}
               </Text>
 
