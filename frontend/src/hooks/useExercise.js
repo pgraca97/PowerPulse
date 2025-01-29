@@ -130,13 +130,15 @@ export function useExercise(exerciseId) {
           input: exerciseData
         }
       });
+      console.log("Resposta da API:", data); 
       await refetchExercises();
       return data.createExercise;
     } catch (error) {
-      console.error('Error in createExercise:', error);
+      console.error("Erro ao criar exercício:", error);
       throw error;
     }
   };
+  
 
   const updateExercise = async (id, exerciseData) => {
     try {

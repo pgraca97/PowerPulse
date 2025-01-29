@@ -1,7 +1,10 @@
 import React from 'react';
-import { Avatar, Paper, Text } from '@mantine/core';
+import { Avatar, Paper, Text, Button } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 
-const UserCard = ({ imageUrl, userName, userGreeting }) => {
+const UserCard = ({ imageUrl, userName, userGreeting, isAdmin }) => {
+  const navigate = useNavigate();
+
   return (
     <Paper radius="md" withBorder p="lg" bg="var(--mantine-color-body)">
       <Avatar
@@ -19,6 +22,16 @@ const UserCard = ({ imageUrl, userName, userGreeting }) => {
       <Text ta="center" c="dimmed" fz="sm">
         {userGreeting}
       </Text>
+      {isAdmin && (
+        <Button
+          fullWidth
+          mt="md"
+          color="blue"
+          onClick={() => navigate('/admin')}
+        >
+          Admin Dashboard
+        </Button>
+      )}
     </Paper>
   );
 };

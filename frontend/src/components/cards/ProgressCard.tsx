@@ -5,7 +5,6 @@ import { useProgress } from "../../hooks/useProgress";
 export function ProgressCard() {
   const { progress, loading, error } = useProgress();
 
-  console.log(progress);
 
   if (loading) {
     return (

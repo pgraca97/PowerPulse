@@ -38,7 +38,7 @@ export async function requireAdmin(context) {
       // Here the admin logic could be more robust...
       // But for now, we check if the email contains 'admin' or if the user has the admin role
     const dbUser = await User.findOne({ firebaseUid: user.uid });
-    if (!dbUser?.isAdmin || !user.email?.includes('admin')) {
+    if (!dbUser?.isAdmin) {
         throw new AuthorizationError('Admin access required');
     }
     
