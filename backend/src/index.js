@@ -1,10 +1,17 @@
 // backend/src/index.js
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import express from 'express';
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/lib/use/ws';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from 'cors';
 import { typeDefs } from "./graphql/schema/index.js";
 import { resolvers } from "./graphql/resolvers/index.js";
 import { fileURLToPath } from "url";
@@ -30,37 +37,29 @@ initializeApp({
   credential: cert(serviceAccount),
 });
 
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  formatError: (error) => {
-    console.error("GraphQL Error:", error);
-    return error;
-  },
+// Create schema
+const schema = makeExecutableSchema({ 
+  typeDefs, 
+  resolvers 
 });
 
-await mongoose.connect(process.env.MONGODB_URI);
-console.log("Connected to MongoDB");
+// Create Express app and HTTP server
+const app = express();
+const httpServer = createServer(app);
 
-try {
-// backend/src/index.js
-// Adicionar após a inicialização do servidor Apollo, dentro do startStandaloneServer
+// Create WebSocket server
+const wsServer = new WebSocketServer({
+  server: httpServer,
+  path: '/graphql',
+});
 
-const { url } = await startStandaloneServer(server, {
-  context: async ({ req }) => {
-    const token = req.headers.authorization?.replace("Bearer ", "");
+// WebSocket server setup with authentication
+const serverCleanup = useServer({
+  schema,
+  context: async (ctx) => {
+    // Get the token from the connection params
+    const token = ctx.connectionParams?.Authorization?.replace('Bearer ', '');
     
-    // Development bypass
-    if (process.env.NODE_ENV === 'development' && token?.startsWith('test-')) {
-      return {
-        user: {
-          //uid: token.replace('test-', ''),
-          uid: 'EJqw2DfzgTPXoWRZs2kvWr8N2wG3',
-          email: `${token.replace('test-', '')}@admin.com`
-        }
-      };
-    }
-
     if (!token) {
       return { user: null };
     }
@@ -69,13 +68,62 @@ const { url } = await startStandaloneServer(server, {
       const decodedToken = await getAuth().verifyIdToken(token);
       return { user: decodedToken };
     } catch (error) {
-      console.error("Token verification error:", error);
       return { user: null };
     }
   },
-  listen: { port: process.env.PORT || 4000 },
+}, wsServer);
+
+// Create Apollo Server
+const server = new ApolloServer({
+  schema,
+  plugins: [
+    ApolloServerPluginDrainHttpServer({ httpServer }),
+    {
+      async serverWillStart() {
+        return {
+          async drainServer() {
+            await serverCleanup.dispose();
+          },
+        };
+      },
+    },
+  ],
 });
-  console.log(`🚀 Server ready at ${url}`);
-} catch (error) {
-  console.error("Failed to start server:", error);
-}
+
+// Connect to MongoDB
+await mongoose.connect(process.env.MONGODB_URI);
+console.log("Connected to MongoDB");
+
+// Start the server
+await server.start();
+
+// Apply middleware
+app.use(
+  '/graphql',
+  cors(),
+  express.json(),
+  expressMiddleware(server, {
+    context: async ({ req }) => {
+      const token = req.headers.authorization?.replace("Bearer ", "");
+      
+      if (!token) {
+        return { user: null };
+      }
+
+      try {
+        const decodedToken = await getAuth().verifyIdToken(token);
+        return { user: decodedToken };
+      } catch (error) {
+        console.error("Token verification error:", error);
+        return { user: null };
+      }
+    },
+  }),
+);
+
+// Start the server
+const PORT = process.env.PORT || 4000;
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
+  console.log(`🚀 Subscriptions ready at ws://localhost:${PORT}/graphql`);
+});

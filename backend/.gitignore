@@ -1,8 +1,10 @@
+
 # Environment variables
 .env
 
 # Node modules
 node_modules/
+
 
 # Firebase service account
 config/firebase-service-account.json

@@ -10,6 +10,7 @@ import {
   validateRequiredFields,
 } from "../../middleware/validation.js";
 import { DIFFICULTY_LEVELS, MUSCLE_GROUPS } from "../../constants/exercise.js";
+import { pubsub, EVENTS } from '../../services/pubsub.js';
 
 export const exerciseResolvers = {
   Query: {
@@ -95,6 +96,12 @@ export const exerciseResolvers = {
     },
   },
 
+  Subscription: {
+    exerciseCreated: {
+      subscribe: () => pubsub.asyncIterator([EVENTS.EXERCISE_CREATED])
+    },
+  },
+
   Mutation: {
     createExercise: async (_, { input }, context) => {
       requireAdmin(context);
@@ -166,7 +173,13 @@ export const exerciseResolvers = {
         };
 
         const exercise = await Exercise.create(exerciseInput);
-        return await exercise.populate("type");
+        const populatedExercise = await exercise.populate("type");
+
+        //publish evebnt for all subscribers
+        pubsub.publish(EVENTS.EXERCISE_CREATED, { 
+          exerciseCreated: populatedExercise 
+        });
+        return populatedExercise;
       } catch (error) {
         return handleMongoError(error);
       }
