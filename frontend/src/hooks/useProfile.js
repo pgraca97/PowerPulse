@@ -10,6 +10,7 @@ const GET_PROFILE = gql`
       firebaseUid
       email
       name
+      isAdmin
       picture {
         url
         publicId
@@ -30,6 +31,7 @@ const UPDATE_PROFILE = gql`
     updateProfile(input: $input) {
       id
       name
+      isAdmin
       picture {
         url
         publicId
@@ -85,6 +87,7 @@ export function useProfile() {
 
   return {
     profile: data?.me,
+    isAdmin: data?.me?.isAdmin || false,
     loading: queryLoading || updateLoading,
     error: queryError,
     updateProfile,

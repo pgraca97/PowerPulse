@@ -16,6 +16,12 @@ export const exerciseTypes = `
     updatedAt: String!
   }
 
+
+  type PaginatedExercises {  
+    exercises: [Exercise!]!
+    totalCount: Int!
+     }
+
   enum Difficulty {
  ${DIFFICULTY_LEVELS.join('\n    ')}
   }

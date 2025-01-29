@@ -46,7 +46,7 @@ const useStyles = createStyles((theme) => ({
 export function Dashboard() {
   const { classes } = useStyles();
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile, isAdmin } = useProfile();
   const [imagePreview, setImagePreview] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
@@ -56,7 +56,8 @@ export function Dashboard() {
   });
   const { getExerciseTypes } = useExerciseType();
   const { loading: exerciseTypesLoading, error: typeError, exerciseTypes } = getExerciseTypes();
-  const { exercises, loading: exercisesLoading, error: exercisesError } = useExercise();
+  const { exercises, totalExercises, refetchExercises,  loading: exercisesLoading, error: exercisesError  } = useExercise(undefined, 10, currentPage * 10);
+
 
 
   // Extract unique difficulties and muscles from exercises
@@ -112,18 +113,19 @@ if (typeError || exercisesError) {
 
   return (
     <div className={classes.dashboardContainer}>
-      {/* First Column */}
-      <div className={`${classes.column} ${classes.firstColumn}`}>
-        <UserCard
-          imageUrl={profile?.picture?.url || imagePreview}
-          userName={user?.displayName}
-          userGreeting="Ready for your fitness journey?"
-        />
-        <div className={classes.scrollableSection}>
-          <Title order={3} className="mt-4">Your Progress</Title>
-          <ProgressCard />
-        </div>
+    {/* First Column */}
+    <div className={`${classes.column} ${classes.firstColumn}`}>
+      <UserCard
+        imageUrl={profile?.picture?.url || imagePreview}
+        userName={profile?.name || user?.displayName}
+        userGreeting="Ready for your fitness journey?"
+        isAdmin={isAdmin}
+      />
+      <div className={classes.scrollableSection}>
+        <Title order={3} className="mt-4">Your Progress</Title>
+        <ProgressCard />
       </div>
+    </div>
 
   
       {/* Second Column */}
