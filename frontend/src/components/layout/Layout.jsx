@@ -1,4 +1,4 @@
-
+// src/components/layout/Layout.jsx
 import { AppShell } from '@mantine/core';
 import { Header } from './Header/Header';
 import { useDisclosure } from '@mantine/hooks';
@@ -9,17 +9,17 @@ export function Layout() {
 
   return (
     <AppShell
-      header={{ height: 60 }}
-      navbar={{
-        width: 300,
-        breakpoint: 'sm',
-        collapsed: { mobile: !opened }
-      }}
-      padding="md"
-       layout="alt"
+      header={{ height: 70 }}
+      padding={0}
+      layout="alt"
     >
-      <Header opened={opened} toggle={toggle} />
-      <AppShell.Main>
+      <AppShell.Header
+      >
+        <div className="h-full py-2">
+          <Header opened={opened} toggle={toggle}/>
+        </div>
+      </AppShell.Header>
+      <AppShell.Main pt={70}>
         <Outlet />
       </AppShell.Main>
     </AppShell>
