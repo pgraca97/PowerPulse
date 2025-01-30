@@ -61,13 +61,13 @@ export function AdminDashboard() {
       typeId: "",
       equipment: "",
       muscles: [],
-      instructions: "",
+      instructions: [],
     },
     validate: {
       title: (value) => (!value ? 'Title is required' : value.length < 3 ? 'Title must be at least 3 characters' : null),
       description: (value) => (!value ? 'Description is required' : null),
       typeId: (value) => (!value ? 'Exercise type is required' : null),
-      instructions: (value) => (!value ? 'Instructions are required' : null),
+      instructions: (value) => (value.length === 0 ? 'At least one instruction is required' : null),
       pointsAwarded: (value) => (value < 0 ? 'Points must be positive' : null)
     }
   });
@@ -165,7 +165,7 @@ export function AdminDashboard() {
   if (error) {
     return (
       <Container>
-        <Text color="red" size="lg" ta="center">
+        <Text c="red" size="lg" ta="center">
           Error: {error.message}
         </Text>
       </Container>
@@ -284,13 +284,43 @@ export function AdminDashboard() {
               placeholder="Required equipment"
               {...form.getInputProps("equipment")}
             />
-            <Textarea
-              label="Instructions"
-              placeholder="Exercise instructions"
-              required
-              minRows={3}
-              {...form.getInputProps("instructions")}
-            />
+<Stack mt="md">
+  <Text fw={500} size="sm">
+    Instructions *
+    <Text span c="dimmed" size="xs" fw={400}>
+      {" "}(Add each step of the exercise instructions)
+    </Text>
+  </Text>
+  
+  {form.values.instructions.map((instruction, index) => (
+    <Group key={index} align="flex-end">
+      <TextInput
+        placeholder={`Step ${index + 1}`}
+        value={instruction}
+        onChange={(e) => form.setFieldValue(`instructions.${index}`, e.currentTarget.value)}
+        style={{ flex: 1 }}
+        error={form.errors.instructions && index === 0 ? form.errors.instructions : null}
+      />
+      <ActionIcon
+        color="red"
+        variant="subtle"
+        onClick={() => form.removeListItem('instructions', index)}
+        mb={4}
+      >
+        <IconTrash size={16} />
+      </ActionIcon>
+    </Group>
+  ))}
+  
+  <Button
+    variant="outline"
+    onClick={() => form.insertListItem('instructions', '')}
+    leftSection={<IconPlus size={16} />}
+    size="sm"
+  >
+    Add Instruction Step
+  </Button>
+</Stack>
             <Select
               label="Exercise Type"
               placeholder="Select exercise type"

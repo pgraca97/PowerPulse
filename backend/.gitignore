@@ -8,3 +8,15 @@ node_modules/
 
 # Firebase service account
 config/firebase-service-account.json
+
+.DS_Store
+dist/
+build/
+*.log
+.idea/
+.vscode/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.env.local
+*.env.*.local

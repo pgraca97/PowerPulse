@@ -12,6 +12,10 @@ import { exerciseTypeTypes } from "./types/exerciseType.js";
 import { exerciseTypeQueries } from "./queries/exerciseType.js";
 import { exerciseTypeMutations } from "./mutations/exerciseType.js";
 
+import { notificationTypes } from "./types/notification.js";
+import { notificationQueries } from "./queries/notification.js";
+import { notificationMutations } from "./mutations/notification.js";
+
 export const typeDefs = `
   ${userTypes}
   ${userQueries}
@@ -23,4 +27,7 @@ export const typeDefs = `
   ${exerciseTypeTypes}
   ${exerciseTypeQueries}
   ${exerciseTypeMutations}
+  ${notificationTypes}
+  ${notificationQueries}
+  ${notificationMutations}
 `;

@@ -1,10 +1,10 @@
-// frontend/src/providers/AuthProvider.jsx
+// src/providers/AuthProvider.jsx
 import { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { AuthContext } from '../contexts/AuthContext';
 import { useApolloClient } from '@apollo/client';
+import PropTypes from 'prop-types';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -12,8 +12,8 @@ export function AuthProvider({ children }) {
   const apolloClient = useApolloClient();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
 
@@ -22,9 +22,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      console.log('Logging out...');
       await signOut(auth);
-      // Clear Apollo cache when logging out
       await apolloClient.clearStore();
     } catch (error) {
       console.error('Logout error:', error);
@@ -32,18 +30,12 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const value = {
-    user,
-    loading,
-    logout
-  };
-
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );
