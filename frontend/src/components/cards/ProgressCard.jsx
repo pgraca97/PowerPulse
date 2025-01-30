@@ -1,4 +1,4 @@
-// src/components/cards/ProgressCard.jsx
+
 import { Card, Text, Stack, Progress, Loader } from "@mantine/core";
 import { useProgress } from "../../hooks/useProgress";
 

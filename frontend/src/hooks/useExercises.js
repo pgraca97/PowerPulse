@@ -1,4 +1,3 @@
-// src/hooks/useExercises.js - Para listar exercícios
 import { useQuery, gql } from '@apollo/client';
 
 const GET_EXERCISES = gql`

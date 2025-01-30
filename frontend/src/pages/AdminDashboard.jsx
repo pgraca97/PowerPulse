@@ -1,4 +1,3 @@
-// src/pages/AdminDashboard.jsx
 import { useState } from "react";
 import {
   Container,

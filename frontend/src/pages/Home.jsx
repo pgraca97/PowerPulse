@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import { useEffect } from 'react';
 import { Container, Title, Text, Group, Button } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';

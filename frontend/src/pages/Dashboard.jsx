@@ -1,4 +1,3 @@
-// src/pages/Dashboard.jsx
 import { Title, Loader, Container, Flex, Box } from '@mantine/core';
 import { useAuth } from '../hooks/useAuth';
 import ExerciseCard from '../components/cards/ExerciseCard';

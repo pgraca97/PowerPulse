@@ -1,4 +1,4 @@
-// src/components/cards/WelcomeCard.jsx
+
 import { Avatar, Paper, Text, List, Title } from '@mantine/core';
 import PropTypes from 'prop-types';
 

@@ -1,4 +1,4 @@
-// src/graphql/schema/types/exerciseType.js
+
 export const exerciseTypeTypes = `
   type ExerciseType {
     id: ID!

@@ -1,4 +1,4 @@
-// backend/src/models/Notification.js
+
 import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema(
@@ -11,7 +11,7 @@ const notificationSchema = new mongoose.Schema(
         type: {
             type: String,
             required: true,
-            enum: ['NEW_EXERCISE', 'LEVEL_UP', 'ACHIEVEMENT']  // We can expand later
+            enum: ['NEW_EXERCISE', 'LEVEL_UP', 'ACHIEVEMENT']  // we can expand later
         },
         title: {
             type: String,
@@ -26,7 +26,7 @@ const notificationSchema = new mongoose.Schema(
             default: false
         },
         data: {
-            type: mongoose.Schema.Types.Mixed,  // Additional data specific to the type
+            type: mongoose.Schema.Types.Mixed,  
             default: {}
         }
     },

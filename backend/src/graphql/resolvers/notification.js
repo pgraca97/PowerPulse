@@ -1,4 +1,4 @@
-// backend/src/graphql/resolvers/notification.js
+
 import { Notification } from "../../models/Notification.js";
 import { requireAuth } from "../../middleware/auth.js";
 import { 

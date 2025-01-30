@@ -1,4 +1,4 @@
-// src/models/ExerciseType.js
+
 import mongoose from "mongoose";
 
 const exerciseTypeSchema = new mongoose.Schema(

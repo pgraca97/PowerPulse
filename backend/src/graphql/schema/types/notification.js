@@ -1,4 +1,4 @@
-// backend/src/graphql/schema/types/notification.js
+
 export const notificationTypes = `
   type Notification {
     id: ID!

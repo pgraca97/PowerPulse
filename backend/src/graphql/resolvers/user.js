@@ -1,4 +1,4 @@
-// src/graphql/resolvers/user.js
+
 import { v2 as cloudinary } from "cloudinary";
 import { User } from "../../models/User.js";
 import { Exercise } from "../../models/Exercise.js";

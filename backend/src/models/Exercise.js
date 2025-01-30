@@ -1,4 +1,4 @@
-// src/models/Exercise.js
+
 
 import mongoose from "mongoose";
 import { DIFFICULTY_LEVELS, MUSCLE_GROUPS } from "../constants/exercise.js";

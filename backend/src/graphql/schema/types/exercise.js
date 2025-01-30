@@ -1,4 +1,4 @@
-// src/graphql/schema/types/exercise.js
+
 import { DIFFICULTY_LEVELS, MUSCLE_GROUPS } from "../../../constants/exercise.js";
 
 export const exerciseTypes = `

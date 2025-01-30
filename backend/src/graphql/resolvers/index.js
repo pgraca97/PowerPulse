@@ -1,4 +1,4 @@
-// backend/src/graphql/resolvers/index.js
+
 import { userResolvers } from "./user.js";
 import { exerciseResolvers } from "./exercise.js";
 import { exerciseTypeResolvers } from "./exerciseType.js";

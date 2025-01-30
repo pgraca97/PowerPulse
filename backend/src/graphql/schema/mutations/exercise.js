@@ -1,4 +1,4 @@
-// src/graphql/schema/mutations/exercise.js
+
 export const exerciseMutations = `
   type Mutation {
     createExercise(input: CreateExerciseInput!): Exercise!

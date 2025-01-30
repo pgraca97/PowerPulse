@@ -1,4 +1,3 @@
-// src/hooks/useExerciseDetails.js - Para detalhes de um exercício
 import { useQuery, gql } from '@apollo/client';
 
 const GET_EXERCISE = gql`

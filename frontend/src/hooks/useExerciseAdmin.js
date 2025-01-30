@@ -1,4 +1,3 @@
-// src/hooks/useExerciseAdmin.js - Para operações administrativas
 import { useMutation, gql } from '@apollo/client';
 
 const CREATE_EXERCISE = gql`

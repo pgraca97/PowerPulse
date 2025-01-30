@@ -1,6 +1,4 @@
 
-// src/components/layout/Layout/Layout.jsx
-
 import { AppShell } from '@mantine/core';
 import { Header } from './Header/Header';
 import { useDisclosure } from '@mantine/hooks';

@@ -1,4 +1,3 @@
-// src/components/forms/SignupForm.jsx
 import React from 'react';
 import { TextInput, PasswordInput, Button, Stack, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
