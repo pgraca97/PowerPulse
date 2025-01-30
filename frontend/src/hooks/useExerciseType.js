@@ -1,8 +1,6 @@
 // src/hooks/useExerciseType.js
-import { useQuery, useMutation } from '@apollo/client';
-import { gql } from '@apollo/client';
+import { useQuery, useMutation, gql } from '@apollo/client';
 
-// Define the GraphQL queries and mutations
 const GET_EXERCISE_TYPE = gql`
   query ExerciseType($id: ID!) {
     exerciseType(id: $id) {
@@ -57,41 +55,77 @@ const DELETE_EXERCISE_TYPE = gql`
   }
 `;
 
-export const useExerciseType = () => {
-  // Fetch a single exercise type by ID
-  const getExerciseType = (id) => {
-    const { loading, error, data } = useQuery(GET_EXERCISE_TYPE, {
-      variables: { id },
-    });
-    return { loading, error, exerciseType: data?.exerciseType };
+export function useExerciseType(id) {
+  // Query for single exercise type
+  const {
+    data: typeData,
+    loading: typeLoading,
+    error: typeError
+  } = useQuery(GET_EXERCISE_TYPE, {
+    variables: { id },
+    skip: !id
+  });
+
+  // Query for all exercise types
+  const {
+    data: typesData,
+    loading: typesLoading,
+    error: typesError,
+    refetch: refetchTypes
+  } = useQuery(GET_EXERCISE_TYPES);
+
+  // Mutations
+  const [createExerciseType, { loading: createLoading }] = useMutation(CREATE_EXERCISE_TYPE);
+  const [updateExerciseType, { loading: updateLoading }] = useMutation(UPDATE_EXERCISE_TYPE);
+  const [deleteExerciseType, { loading: deleteLoading }] = useMutation(DELETE_EXERCISE_TYPE);
+
+  const handleCreate = async (input) => {
+    try {
+      const { data } = await createExerciseType({
+        variables: { input },
+        refetchQueries: [{ query: GET_EXERCISE_TYPES }]
+      });
+      return data.createExerciseType;
+    } catch (error) {
+      console.error('Error creating exercise type:', error);
+      throw error;
+    }
   };
 
-  // Fetch all exercise types
-  const getExerciseTypes = () => {
-    const { loading, error, data } = useQuery(GET_EXERCISE_TYPES);
-    return { loading, error, exerciseTypes: data?.exerciseTypes };
+  const handleUpdate = async (id, input) => {
+    try {
+      const { data } = await updateExerciseType({
+        variables: { id, input },
+        refetchQueries: [{ query: GET_EXERCISE_TYPES }]
+      });
+      return data.updateExerciseType;
+    } catch (error) {
+      console.error('Error updating exercise type:', error);
+      throw error;
+    }
   };
 
-  // Create a new exercise type
-  const [createExerciseType] = useMutation(CREATE_EXERCISE_TYPE, {
-    refetchQueries: [{ query: GET_EXERCISE_TYPES }],
-  });
-
-  // Update an existing exercise type
-  const [updateExerciseType] = useMutation(UPDATE_EXERCISE_TYPE, {
-    refetchQueries: [{ query: GET_EXERCISE_TYPES }],
-  });
-
-  // Delete an exercise type
-  const [deleteExerciseType] = useMutation(DELETE_EXERCISE_TYPE, {
-    refetchQueries: [{ query: GET_EXERCISE_TYPES }],
-  });
+  const handleDelete = async (id) => {
+    try {
+      const { data } = await deleteExerciseType({
+        variables: { id },
+        refetchQueries: [{ query: GET_EXERCISE_TYPES }]
+      });
+      return data.deleteExerciseType;
+    } catch (error) {
+      console.error('Error deleting exercise type:', error);
+      throw error;
+    }
+  };
 
   return {
-    getExerciseType,
-    getExerciseTypes,
-    createExerciseType,
-    updateExerciseType,
-    deleteExerciseType,
+    exerciseType: typeData?.exerciseType,
+    exerciseTypes: typesData?.exerciseTypes || [],
+    loading: typeLoading || typesLoading || createLoading || updateLoading || deleteLoading,
+    error: typeError || typesError,
+    createExerciseType: handleCreate,
+    updateExerciseType: handleUpdate,
+    deleteExerciseType: handleDelete,
+    refetchTypes
   };
-};
+}
