@@ -1,4 +1,4 @@
-// backend/src/graphql/schema/mutations/notification.js
+
 export const notificationMutations = `
   extend type Mutation {
     markNotificationAsRead(id: ID!): Notification!

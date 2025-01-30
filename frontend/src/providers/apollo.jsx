@@ -1,4 +1,3 @@
-// src/providers/apollo.jsx
 import { ApolloClient, InMemoryCache, ApolloProvider, split, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';

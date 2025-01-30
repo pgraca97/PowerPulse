@@ -1,4 +1,4 @@
-// src/components/cards/UserProgressCard.jsx
+
 import { Card, Title, Text, Progress, Group, Stack } from '@mantine/core';
 import PropTypes from 'prop-types';
 

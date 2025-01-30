@@ -1,4 +1,3 @@
-// src/components/forms/SearchInput.jsx
 import { IconArrowRight, IconSearch, IconX } from '@tabler/icons-react';
 import { ActionIcon, TextInput, Group, useMantineTheme } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';

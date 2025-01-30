@@ -1,4 +1,3 @@
-// src/components/layout/Header/Header.jsx
 import { AppShell, Container, Group, Button, Text, Burger, Menu, ActionIcon, Indicator, Box } from '@mantine/core';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';

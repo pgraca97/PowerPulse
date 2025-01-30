@@ -1,4 +1,4 @@
-// backend\src\models\User.js
+
 import mongoose from "mongoose";
 import { MUSCLE_GROUPS, DIFFICULTY_LEVELS } from "../constants/exercise.js";
 
@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
       },
     },
     progress: [{
-      exerciseTypeId: {  // Mudamos para exerciseTypeId para clareza
+      exerciseTypeId: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ExerciseType',
         required: true

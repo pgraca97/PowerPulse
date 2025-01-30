@@ -1,4 +1,4 @@
-// src/middleware/errors.js
+
 import { GraphQLError } from 'graphql';
 
 export class BaseError extends GraphQLError {

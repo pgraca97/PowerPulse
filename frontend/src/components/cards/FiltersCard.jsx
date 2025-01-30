@@ -1,4 +1,4 @@
-// src/components/cards/FiltersCard.jsx
+
 
 import { Stack, Button, Menu } from '@mantine/core';
 import { IconChevronDown, IconTrash } from '@tabler/icons-react';

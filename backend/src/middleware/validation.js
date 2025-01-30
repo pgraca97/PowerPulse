@@ -1,4 +1,4 @@
-// src/middleware/validation.js
+
 import mongoose from 'mongoose';
 import { ValidationError, DuplicateError, NotFoundError } from './errors.js';
 

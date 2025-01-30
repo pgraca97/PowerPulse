@@ -1,4 +1,3 @@
-// src/hooks/useProgress.js
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { useAuth } from './useAuth';
 

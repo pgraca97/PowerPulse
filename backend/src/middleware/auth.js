@@ -1,4 +1,4 @@
-// src/middleware/auth.js
+
 import { GraphQLError } from 'graphql';
 import { User } from '../models/User.js';
 

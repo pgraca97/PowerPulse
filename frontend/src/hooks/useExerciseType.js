@@ -1,4 +1,3 @@
-// src/hooks/useExerciseType.js
 import { useQuery, useMutation, gql } from '@apollo/client';
 
 const GET_EXERCISE_TYPE = gql`

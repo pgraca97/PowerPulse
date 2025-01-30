@@ -1,4 +1,3 @@
-// src/hooks/useSignup.js
 import { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile, deleteUser } from 'firebase/auth';
 import { auth } from '../config/firebase';

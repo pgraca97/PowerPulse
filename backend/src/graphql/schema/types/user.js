@@ -1,4 +1,4 @@
-// backend/src/graphql/schema/types/user.js
+
 import { DIFFICULTY_LEVELS } from "../../../constants/exercise.js";
 
 export const userTypes = `

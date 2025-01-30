@@ -1,4 +1,3 @@
-// frontend/src/components/auth/AuthModal.jsx
 import { Modal, Tabs } from '@mantine/core';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';

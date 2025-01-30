@@ -1,4 +1,4 @@
-// src/graphql/resolvers/exercise.js
+
 import { Exercise } from "../../models/Exercise.js";
 import { ExerciseType } from "../../models/ExerciseType.js";
 import { requireAdmin, requireAuth } from "../../middleware/auth.js";

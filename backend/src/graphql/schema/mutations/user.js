@@ -1,4 +1,4 @@
-// backend/src/graphql/schema/mutations/user.js
+
 export const userMutations = `
   type Mutation {
     createOrUpdateUser(input: CreateOrUpdateUserInput!): User!

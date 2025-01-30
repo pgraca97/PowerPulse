@@ -1,4 +1,3 @@
-// src/hooks/useExerciseSubscription.js
 import { useEffect } from 'react';
 import { useSubscription, gql } from '@apollo/client';
 import { useNotifications } from './useNotifications';

@@ -1,4 +1,3 @@
-// src/hooks/useProfile.js
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { useAuth } from './useAuth';
 import { useCloudinary } from './useCloudinary';

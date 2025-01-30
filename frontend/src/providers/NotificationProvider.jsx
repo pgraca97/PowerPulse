@@ -1,4 +1,3 @@
-// src/providers/NotificationProvider.jsx
 import { useQuery, useMutation, gql } from '@apollo/client';
 import PropTypes from 'prop-types';
 import { NotificationContext } from '../contexts/NotificationContext';

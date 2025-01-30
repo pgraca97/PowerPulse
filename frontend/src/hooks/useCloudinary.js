@@ -1,4 +1,3 @@
-// src/hooks/useCloudinary.js
 import { useMutation, gql } from '@apollo/client';
 
 const GET_SIGNED_UPLOAD_URL = gql`

@@ -1,4 +1,4 @@
-// src/components/cards/ExerciseCard.jsx
+
 import { useState, useEffect, useCallback } from "react";
 import { Badge, Button, Card, Group, Text, Stack, Loader, Grid, Box } from "@mantine/core";
 import { useExercises } from "../../hooks/useExercises.js";

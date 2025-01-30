@@ -1,4 +1,3 @@
-// src/components/forms/LoginForm.jsx
 import { TextInput, PasswordInput, Button, Stack, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useNavigate } from 'react-router-dom';
