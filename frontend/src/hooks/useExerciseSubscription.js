@@ -3,9 +3,9 @@ import { useEffect } from 'react';
 import { useSubscription, gql } from '@apollo/client';
 import { useNotifications } from './useNotifications';
 
-const EXERCISE_ADDED_SUBSCRIPTION = gql`
-  subscription OnExerciseAdded {
-    exerciseAdded {
+const EXERCISE_CREATED_SUBSCRIPTION = gql`
+  subscription OnExerciseCreated {
+    exerciseCreated {
       id
       title
       description
@@ -22,11 +22,10 @@ const EXERCISE_ADDED_SUBSCRIPTION = gql`
 export function useExerciseSubscription() {
   const { refetch } = useNotifications();
 
-  const { data, loading, error } = useSubscription(EXERCISE_ADDED_SUBSCRIPTION, {
+  const { data, loading, error } = useSubscription(EXERCISE_CREATED_SUBSCRIPTION, {
     onData: ({ data: { data } }) => {
-      console.log('Subscription data received:', data); // Debug log
-      if (data?.exerciseAdded) {
-        // Recarrega as notificações quando receber nova
+      console.log('Subscription data received:', data);
+      if (data?.exerciseCreated) {
         refetch();
       }
     },
@@ -41,5 +40,5 @@ export function useExerciseSubscription() {
     }
   }, [error]);
 
-  return { newExercise: data?.exerciseAdded, loading, error };
+  return { newExercise: data?.exerciseCreated, loading, error };
 }

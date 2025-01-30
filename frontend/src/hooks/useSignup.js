@@ -51,19 +51,29 @@ export function useSignup() {
             firebaseUid: user.uid,
             email,
             name,
-            picture: user.photoURL
+            picture: user.photoURL || null
           }
-        }
+        },
+        // Important: Wait for the mutation to complete
+        awaitRefetchQueries: true
       });
 
       if (!data?.createOrUpdateUser) {
         throw new Error('Failed to create user in database');
       }
 
+      // Small delay to ensure state propagation
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       return { success: true };
     } catch (error) {
+      // Cleanup: delete Firebase user if MongoDB creation fails
       if (firebaseUser) {
-        await deleteUser(firebaseUser);
+        try {
+          await deleteUser(firebaseUser);
+        } catch (deleteError) {
+          console.error('Error cleaning up Firebase user:', deleteError);
+        }
       }
       
       console.error('Signup error:', error);

@@ -20,7 +20,15 @@ const GET_PROFILE = gql`
         height
         weight
         fitnessLevel
-        bio
+        goals
+      }
+      progress {
+        exerciseType {
+          id
+          title
+        }
+        level
+        points
       }
     }
   }
@@ -31,7 +39,6 @@ const UPDATE_PROFILE = gql`
     updateProfile(input: $input) {
       id
       name
-      isAdmin
       picture {
         url
         publicId
@@ -41,7 +48,15 @@ const UPDATE_PROFILE = gql`
         height
         weight
         fitnessLevel
-        bio
+        goals
+      }
+      progress {
+        exerciseType {
+          id
+          title
+        }
+        level
+        points
       }
     }
   }
@@ -53,10 +68,7 @@ export function useProfile() {
   
   const { data, loading: queryLoading, error: queryError, refetch } = useQuery(GET_PROFILE, {
     skip: !user,
-    fetchPolicy: 'network-only',
-    onError: (error) => {
-      console.error('Profile query error:', error);
-    }
+    fetchPolicy: 'network-only'
   });
 
   const [updateProfileMutation, { loading: updateLoading }] = useMutation(UPDATE_PROFILE);
@@ -87,7 +99,6 @@ export function useProfile() {
 
   return {
     profile: data?.me,
-    isAdmin: data?.me?.isAdmin || false,
     loading: queryLoading || updateLoading,
     error: queryError,
     updateProfile,

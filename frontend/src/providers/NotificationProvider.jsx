@@ -41,12 +41,12 @@ const DELETE_NOTIFICATION = gql`
 `;
 
 export function NotificationProvider({ children }) {
-    const { user } = useAuth();
+  const { user } = useAuth();
+  
   const { data, loading, error, refetch } = useQuery(GET_NOTIFICATIONS, {
     variables: { limit: 10, offset: 0 },
     skip: !user,
-    fetchPolicy: 'network-only',
-    onError: (error) => console.error('Notification query error:', error)
+    fetchPolicy: 'network-only'
   });
 
   const [markAsReadMutation] = useMutation(MARK_AS_READ);
@@ -58,18 +58,21 @@ export function NotificationProvider({ children }) {
       await markAsReadMutation({
         variables: { id: notificationId }
       });
-      refetch();
+      const { data } = await refetch();
+      return data;
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      throw error;
     }
   };
 
   const markAllAsRead = async () => {
     try {
       await markAllReadMutation();
-      refetch();
+      await refetch();
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+      throw error;
     }
   };
 
@@ -78,9 +81,10 @@ export function NotificationProvider({ children }) {
       await deleteNotificationMutation({
         variables: { id: notificationId }
       });
-      refetch();
+      await refetch();
     } catch (error) {
       console.error('Error deleting notification:', error);
+      throw error;
     }
   };
 
@@ -105,4 +109,3 @@ export function NotificationProvider({ children }) {
 NotificationProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
-
